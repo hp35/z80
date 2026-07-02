@@ -1,20 +1,20 @@
 # Configuration of GTKTerm and Waveshare USB to UART/I2C/SPI/JTAG
 
 **Fredrik Jonsson**
-July 2, 2026<br>
+July 2, 2026</br>
 [https://github.com/hp35/z80/tree/main/uart](https://github.com/hp35/z80/tree/main/uart)
 
-In this tutorial, we will use GTKTerm [1] together with the Waveshare USB to
-UART/I2C/SPI/JTAG interface [2] to show how a simple UART communication channel
+In this tutorial, we will use GTKTerm [^1] together with the Waveshare USB to
+UART/I2C/SPI/JTAG interface [^2] to show how a simple UART communication channel
 is setup. In particular, we will show how we with the Waveshare interface,
 which internally contains two independently operated UART interfaces, can
 check the communication by simply having the two interfaces communicating
 with each other.
 
-   [1] Willem van den Akker, "GTKTerm: A GTK+ Serial Port Terminal",
-       https://github.com/wvdakker/gtkterm
-   [2] Waveshare USB to UART/I2C/SPI/JTAG interface,
-       https://www.waveshare.com/wiki/USB_TO_UART/I2C/SPI/JTAG
+[^1]: Willem van den Akker, <em>GTKTerm: A GTK+ Serial Port Terminal</em>,
+      [https://github.com/wvdakker/gtkterm]
+[^2]: <em>Waveshare USB to UART/I2C/SPI/JTAG interface</em>,
+      [https://www.waveshare.com/wiki/USB_TO_UART/I2C/SPI/JTAG]
 
 ## 1. Default settings
 
@@ -36,15 +36,15 @@ with each other.
 ### 2.1. Connecting the Waveshare UART interface
 Connect the Waveshare USB to UART/I2C/SPI/JTAG module to your computer with a
 USB cable (USB-A to USB-B), with the switches of the interface set to 5V and
-S1 and S2 both to OFF (in order to use the UART ports). Check that the red
-power light (PWR) is lit.
+`S1` and `S2` both set to `OFF` (in order to use the UART ports). Check that
+the red power light (`PWR`) is lit.
 
 ![Waveshare USB to UART/I2C/SPI/JTAG interface with the switches of the
-interface set to 5V and S1 and S2 both to OFF.](waveshare-b.jpg)
-<b>Figure 2.</b>Waveshare USB to UART/I2C/SPI/JTAG interface with the
+interface set to 5V and S1 and S2 both to OFF.](waveshare-b.jpg)</br>
+<b>Figure 2.</b><i>Waveshare USB to UART/I2C/SPI/JTAG</i> interface with the
 switches of the interface set to 5V and S1 and S2 both to OFF.
 
-### Check for the `/dev/ttyACM0` and `/dev/ttyACM0` devices
+### 2.2. Check for the `/dev/ttyACM0` and `/dev/ttyACM0` devices
 Make sure that the two UARTs of the Waveshare interface shows up at your
 computer as the two devices /dev/ttyACM0 and /dev/ttyACM1:
 ```bash
