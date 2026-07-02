@@ -16,7 +16,7 @@ with each other.
    [2] Waveshare USB to UART/I2C/SPI/JTAG interface,
        https://www.waveshare.com/wiki/USB_TO_UART/I2C/SPI/JTAG
 
-## Default settings
+## 1. Default settings
 
    For the UART side in GTKTerm, the correct settings depend mostly on the
    device you connect to, not the Waveshare interface itself. The adapter
@@ -31,9 +31,9 @@ with each other.
         Stop bits: 1
         Flow control: None
 
-## Basic setup
+## 2. Basic setup
 
-### Connect your computer with a USB cable (USB-A to USB-B) to the
+### 2.1. Connect your computer with a USB cable (USB-A to USB-B) to the
         Waveshare USB to UART/I2C/SPI/JTAG module, with switches set to
         5V and S1 and S2 both to OFF (in order to use the UART ports).
 	Check that the red power light (PWR) is lit.
