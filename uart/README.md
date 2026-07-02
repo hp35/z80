@@ -1,7 +1,7 @@
 # Configuration of GTKTerm and Waveshare USB to UART/I2C/SPI/JTAG
 
 **Fredrik Jonsson**
-July 2, 2026
+July 2, 2026<br>
 [https://github.com/hp48/z80/waveshare/README.md](https://github.com/hp48/z80/waveshare/README.md)
 
 In this tutorial, we will use GTKTerm [1] together with the Waveshare USB to
@@ -33,10 +33,11 @@ with each other.
 
 ## 2. Basic setup
 
-### 2.1. Connect your computer with a USB cable (USB-A to USB-B) to the
-        Waveshare USB to UART/I2C/SPI/JTAG module, with switches set to
-        5V and S1 and S2 both to OFF (in order to use the UART ports).
-	Check that the red power light (PWR) is lit.
+### 2.1. Connecting the Waveshare UART interface
+Connect the Waveshare USB to UART/I2C/SPI/JTAG module to your computer with a
+USB cable (USB-A to USB-B), with the switches of the interface set to 5V and
+S1 and S2 both to OFF (in order to use the UART ports). Check that the red
+power light (PWR) is lit.
 
 ### Make sure that the two UARTs of the Waveshare interface shows up
         at your computer as the two devices /dev/ttyACM0 and /dev/ttyACM1:
