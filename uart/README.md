@@ -16,6 +16,13 @@ with each other.
 [^2]: <em>Waveshare USB to UART/I2C/SPI/JTAG interface</em>,
       [https://www.waveshare.com/wiki/USB_TO_UART/I2C/SPI/JTAG]
 
+![Waveshare USB to UART/I2C/SPI/JTAG interface connected with USB, in a loop
+configuration for testing purposes, in which UART0 is communicating with
+UART1.](waveshare-a.jpg)</br>
+<b>Figure 1.</b><i>Waveshare USB to UART/I2C/SPI/JTAG</i> interface connected
+with USB, in a loop configuration for testing purposes, in which UART0 is
+communicating with UART1.
+
 ## 1. Default settings
 
    For the UART side in GTKTerm, the correct settings depend mostly on the
