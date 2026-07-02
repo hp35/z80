@@ -82,13 +82,13 @@ with each other.
         pins. We do this either "as is" or with options explicitly stated at
         startup:
 
-            sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+            sudo gtkterm --port /dev/ttyACM0 --speed 115200 --bits 8 \
                          --stopbits 1 --parity none --flow none
 
         Alternatively, we can launch with RTS/CTS control enabled, by changing
         the flow switch to "--flow CTS", instead using
     
-           sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+           sudo gtkterm --port /dev/ttyACM0 --speed 115200 --bits 8 \
                         --stopbits 1 --parity none --flow CTS
 
         Even with nothing connected to the UART, you should see the TXD0 LED
@@ -115,9 +115,9 @@ with each other.
    3.3. Start two (2) GTKTerm terminals as two separate processes, each one
         connecting to a separate UART, by
 
-           gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+           gtkterm --port /dev/ttyACM0 --speed 115200 --bits 8 \
 	           --stopbits 1 --parity none --flow none &
-           gtkterm --port /dev/ttyACM1 ..speed 115200 --bits 8 \
+           gtkterm --port /dev/ttyACM1 --speed 115200 --bits 8 \
 	           --stopbits 1 --parity none --flow none &
 
         We here state the parameters to use explicitly; however, this is in
@@ -181,9 +181,9 @@ with each other.
         flow control, with the slight change of the --flow option, which we
         now instead set to CTS, by
 
-           gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+           gtkterm --port /dev/ttyACM0 --speed 115200 --bits 8 \
 	           --stopbits 1 --parity none --flow CTS &
-           gtkterm --port /dev/ttyACM1 ..speed 115200 --bits 8 \
+           gtkterm --port /dev/ttyACM1 --speed 115200 --bits 8 \
 	           --stopbits 1 --parity none --flow CTS &
 
   4.4. When typing in text in the first terminal, the typed text should be
