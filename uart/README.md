@@ -97,18 +97,18 @@ the group assignment to take effect.
 We now launch GTKTerm without any RTS/CTS control, just using the `TXD` and
 `RXD` pins. We do this either "as is" or with options explicitly stated at
 startup:
-
-            sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+```bash
+sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
                          --stopbits 1 --parity none --flow none
-
-        Alternatively, we can launch with RTS/CTS control enabled, by changing
-        the flow switch to "--flow CTS", instead using
-    
-           sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+```
+Alternatively, we can launch with RTS/CTS control enabled, by changing
+the flow switch to `--flow CTS`, instead using
+```bash
+sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
                         --stopbits 1 --parity none --flow CTS
-
-        Even with nothing connected to the UART, you should see the TXD0 LED
-        flicker whenever you type anything in the GTKTerm terminal.
+```
+Even with nothing connected to the UART, you should see the `TXD0` LED flicker
+whenever you type anything in the GTKTerm terminal.
 
 ## 3. Checking loopback without flow control
 
@@ -118,7 +118,11 @@ startup:
 ![Waveshare USB to UART/I2C/SPI/JTAG interface in which the `TXD` and `RXD`
 pins of `UART0` and `UART1` are connected crosswise.](waveshare-c.jpg)</br>
 <b>Figure 3.</b><i>Waveshare USB to UART/I2C/SPI/JTAG</i> interface with the
-`TXD` and `RXD` pins of `UART0` and `UART1` connected crosswise. In this configuration, also the `GND` pins are connected (which is not really necessary in the case of the two UARTs in the same module); however, the `RTS` and `CTS` need not be connected as in the image, as we in this case run the communication without hardware flow control.
+`TXD` and `RXD` pins of `UART0` and `UART1` connected crosswise. In this
+configuration, also the `GND` pins are connected (which is not really necessary
+in the case of the two UARTs in the same module); however, the `RTS` and `CTS`
+need not be connected as in the image, as we in this case run the communication
+without hardware flow control.
 
 ### 3.1. Connecting the cross-patched `TXD` and `RXD` pins of the UARTs
 1. Connect the `TXD` pin of `UART0` with the `RXD` pin of `UART1`.
