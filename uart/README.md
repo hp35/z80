@@ -110,35 +110,42 @@ startup:
         Even with nothing connected to the UART, you should see the TXD0 LED
         flicker whenever you type anything in the GTKTerm terminal.
 
-3. Checking loopback without flow control
+## 3. Checking loopback without flow control
 
    Just for the sake of it, disconnect the Waveshare interface from USB to
    avoid accidentally shorting against live pins.
 
-   3.1. Connect the TXD pin of UART0 with the RXD pin of UART1.
-        Connect the RXD pin of UART0 with the TXD pin of UART1.
-        Connect the GND pin of UART0 with the GND pin of UART1.
-   
-        In principle, this connection of ground is not needed as the two UARTs
-	in the Waveshare interface share the same griynd, but just for the sake
-	of illustrating how two different UARTs should be communicating, they
-	should have a ground line interconnecting them, determining the base
-	voltage of the signal levels.
-	
-   3.2. Power up the Waveshare interface by connecting it with the USB cable
-        to the computer again.
-	
-   3.3. Start two (2) GTKTerm terminals as two separate processes, each one
-        connecting to a separate UART, by
+![Waveshare USB to UART/I2C/SPI/JTAG interface in which the `TXD` and `RXD`
+pins of `UART0` and `UART1` are connected crosswise.](waveshare-c.jpg)</br>
+<b>Figure 3.</b><i>Waveshare USB to UART/I2C/SPI/JTAG</i> interface with the
+`TXD` and `RXD` pins of `UART0` and `UART1` connected crosswise. In this configuration, also the `GND` pins are connected (which is not really necessary in the case of the two UARTs in the same module); however, the `RTS` and `CTS` need not be connected as in the image, as we in this case run the communication without hardware flow control.
 
+### 3.1. Connecting the cross-patched `TXD` and `RXD` pins of the UARTs
+1. Connect the `TXD` pin of `UART0` with the `RXD` pin of `UART1`.
+2. Connect the `RXD` pin of `UART0` with the `TXD` pin of `UART1`.
+3. Connect the `GND` pin of `UART0` with the `GND` pin of UART1.
+
+In principle, this connection of ground is not needed as the two UARTs in the
+Waveshare interface share the same griynd, but just for the sake of illustrating
+how two different UARTs should be communicating, they should have a ground line
+interconnecting them, determining the base voltage of the signal levels.
+
+### 3.2. Power up the Waveshare interface
+Power up the Waveshare interface by connecting it with the USB cable to the
+computer again.
+
+### 3.3. Start two GTKTerm terminals
+Start two (2) GTKTerm terminals as two separate processes, each one connecting
+to a separate UART, by
+```bash
            gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
 	           --stopbits 1 --parity none --flow none &
            gtkterm --port /dev/ttyACM1 ..speed 115200 --bits 8 \
 	           --stopbits 1 --parity none --flow none &
-
-        We here state the parameters to use explicitly; however, this is in
-	most cases completely unneccessary, and we may most often just use
-	"gtkterm --port /dev/ttyACM0".
+```
+We here state the parameters to use explicitly; however, this is in most
+cases completely unneccessary, and we may most often just use
+`gtkterm --port /dev/ttyACM0`.
 
   3.4. When typing in text in the first terminal, the typed text should be
        received and displayed by the second terminal (which is operating
