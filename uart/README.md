@@ -39,51 +39,54 @@ USB cable (USB-A to USB-B), with the switches of the interface set to 5V and
 S1 and S2 both to OFF (in order to use the UART ports). Check that the red
 power light (PWR) is lit.
 
-### Make sure that the two UARTs of the Waveshare interface shows up
-        at your computer as the two devices /dev/ttyACM0 and /dev/ttyACM1:
+### Check for the `/dev/ttyACM0` and `/dev/ttyACM0` devices
+Make sure that the two UARTs of the Waveshare interface shows up at your
+computer as the two devices /dev/ttyACM0 and /dev/ttyACM1:
+```bash
+ls /dev/ttyACM*
+```
+```
+crw-rw---- 1 root dialout 166, 0 Jul  2 10:39 /dev/ttyACM0
+crw-rw---- 1 root dialout 166, 1 Jul  2 10:23 /dev/ttyACM1
+```
 
-    ```bash
-            ls /dev/ttyACM*
-    ```
-    ```
-                crw-rw---- 1 root dialout 166, 0 Jul  2 10:39 /dev/ttyACM0
-                crw-rw---- 1 root dialout 166, 1 Jul  2 10:23 /dev/ttyACM1
-    ```
+### 2.3. User permissions for the device drivers
+For simplicity, we CAN make the device accessible to all users, not only root.
+I personally find it inconvenient and not kosher to every now and then use
+`sudo` for the most basic things. Check that the permissions have been changed.
+```bash
+sudo chmod a+rw /dev/ttyACM*
+ls -l /dev/tty*
+```
+```
+crw-rw-rw- 1 root dialout 166, 0 Jul  2 10:39 /dev/ttyACM0
+crw-rw-rw- 1 root dialout 166, 1 Jul  2 10:23 /dev/ttyACM1
+```
 
-   2.3. For simplicity, we CAN make the device accessible to all users, not
-        only root. I personally find it inconvenient and not kosher to every
-        now and then use "sudo" for the most basic things. Check that the
-        permissions have been changed.
+### 2.4. Permament fix of permission problems
+However, devices in /dev/tty (and related ports like `/dev/ttyUSB0` or
+`/dev/ttyACM0`) do not keep permissions set by chmod because they are
+virtual files which are created dynamically by the kernel and `udev`
+every time the system boots, a user logs in, or a device is reconnected.
+Therefore, a more permanent fix of the issue of permissions is to instead
+permanently add your user name to the system group that owns the device
+rather than changing the device's permissions.
 
-            sudo chmod a+rw /dev/ttyACM*
-            ls -l /dev/tty*
-    
-                crw-rw-rw- 1 root dialout 166, 0 Jul  2 10:39 /dev/ttyACM0
-                crw-rw-rw- 1 root dialout 166, 1 Jul  2 10:23 /dev/ttyACM1
+Do this by the following by noting the name of the group obtained by
+`ls /dev/ttyACM*`, in this case `dialout`. Add your current user (or a
+specific username) to the group that controls the device using the `usermod`
+command:
+```bash
+sudo usermod -a -G dialout $USER
+```
+Where `$USER` is your user name as returned by the shell. Apply the changes by
+fully logging out of your session and log back in (or restart your system) for
+the group assignment to take effect.
 
-   2.4. However, devices in /dev/tty (and related ports like /dev/ttyUSB0
-        or /dev/ttyACM0) do not keep permissions set by chmod because they
-	are virtual files which are created dynamically by the kernel and
-	udev every time the system boots, a user logs in, or a device is
-	reconnected. Therefore, a more permanent fix of the issue of
-	permissions is to instead permanently add your user name to the
-	system group that owns the device rather than changing the device's
-	permissions.
-	
-	Do this by the following by noting the name of the group obtained
-	by "ls /dev/ttyACM*", in this case "dialout". Add your current user
-	(or a specific username) to the group that controls the device using
-	the usermod command:
-
-            sudo usermod -a -G dialout $USER
-
-        Where $USER is your user name as returned by the shell. Apply the
-	changes by fully logging out of your session and log back in (or
-	restart your system) for the group assignment to take effect.
-
-   2.5. Launch GTKTerm without any RTS/CTS control, just using the TX and RX
-        pins. We do this either "as is" or with options explicitly stated at
-        startup:
+### 2.5. Launching GTKTerm without hardware flow control
+We now launch GTKTerm without any RTS/CTS control, just using the `TXD` and
+`RXD` pins. We do this either "as is" or with options explicitly stated at
+startup:
 
             sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
                          --stopbits 1 --parity none --flow none
