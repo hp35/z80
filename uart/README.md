@@ -49,7 +49,9 @@ the red power light (`PWR`) is lit.
 ![Waveshare USB to UART/I2C/SPI/JTAG interface with the switches of the
 interface set to 5V and S1 and S2 both to OFF.](waveshare-b.jpg)</br>
 <b>Figure 2.</b><i>Waveshare USB to UART/I2C/SPI/JTAG</i> interface with the
-switches of the interface set to 5V and S1 and S2 both to OFF.
+switches of the interface set to 5V and S1 and S2 both to OFF. The switches
+should be set before powering up the interface by connecting the USB cable
+to the USB-B port.
 
 ### 2.2. Check for the `/dev/ttyACM0` and `/dev/ttyACM0` devices
 Make sure that the two UARTs of the Waveshare interface shows up at your
