@@ -127,7 +127,7 @@ without hardware flow control.
 ### 3.1. Connecting the cross-patched `TXD` and `RXD` pins of the UARTs
 1. Connect the `TXD` pin of `UART0` with the `RXD` pin of `UART1`.
 2. Connect the `RXD` pin of `UART0` with the `TXD` pin of `UART1`.
-3. Connect the `GND` pin of `UART0` with the `GND` pin of UART1.
+3. Connect the `GND` pin of `UART0` with the `GND` pin of `UART1`.
 
 In principle, this connection of ground is not needed as the two UARTs in the
 Waveshare interface share the same griynd, but just for the sake of illustrating
@@ -142,23 +142,24 @@ computer again.
 Start two (2) GTKTerm terminals as two separate processes, each one connecting
 to a separate UART, by
 ```bash
-           gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
-	           --stopbits 1 --parity none --flow none &
-           gtkterm --port /dev/ttyACM1 ..speed 115200 --bits 8 \
-	           --stopbits 1 --parity none --flow none &
+gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+        --stopbits 1 --parity none --flow none &
+gtkterm --port /dev/ttyACM1 ..speed 115200 --bits 8 \
+        --stopbits 1 --parity none --flow none &
 ```
 We here state the parameters to use explicitly; however, this is in most
 cases completely unneccessary, and we may most often just use
 `gtkterm --port /dev/ttyACM0`.
 
-  3.4. When typing in text in the first terminal, the typed text should be
-       received and displayed by the second terminal (which is operating
-       independent of the first one), and vice versa.
+### 3.4. Loopback testing
+When typing in text in the first terminal, the typed text should be received
+and displayed by the second terminal (which is operating independent of the
+first one), and vice versa.
 
-       When typing in the first terminal (associated with UART0), the green
-       TXD0 LED (for the transmission of data from UART0) of the Waveshare
-       interface should flicker together with the blue RXD1 LED (for the
-       reception of data by UART1).
+When typing in the first terminal (associated with UART0), the green `TXD0`
+LED (for the transmission of data from UART0) of the Waveshare interface
+should flicker together with the blue `RXD1` LED (for the reception of data
+by `UART1`).
 
        Also, when typing in the second terminal (associated with UART1),
        the green TXD1 LED (for the transmission of data from UART1) of
