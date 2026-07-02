@@ -98,13 +98,13 @@ We now launch GTKTerm without any RTS/CTS control, just using the `TXD` and
 `RXD` pins. We do this either "as is" or with options explicitly stated at
 startup:
 ```bash
-sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+sudo gtkterm --port /dev/ttyACM0 --speed 115200 --bits 8 \
                          --stopbits 1 --parity none --flow none
 ```
 Alternatively, we can launch with RTS/CTS control enabled, by changing
 the flow switch to `--flow CTS`, instead using
 ```bash
-sudo gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
+sudo gtkterm --port /dev/ttyACM0 --speed 115200 --bits 8 \
                         --stopbits 1 --parity none --flow CTS
 ```
 Even with nothing connected to the UART, you should see the `TXD0` LED flicker
@@ -138,20 +138,18 @@ interconnecting them, determining the base voltage of the signal levels.
 Power up the Waveshare interface by connecting it with the USB cable to the
 computer again.
 
-### 3.3. Start two GTKTerm terminals
+### 3.3. Start the GTKTerm terminals
 Start two (2) GTKTerm terminals as two separate processes, each one connecting
 to a separate UART, by
 ```bash
-gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
-        --stopbits 1 --parity none --flow none &
-gtkterm --port /dev/ttyACM1 ..speed 115200 --bits 8 \
-        --stopbits 1 --parity none --flow none &
+gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none &
+gtkterm --port /dev/ttyACM1 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none &
 ```
 We here state the parameters to use explicitly; however, this is in most
 cases completely unneccessary, and we may most often just use
 `gtkterm --port /dev/ttyACM0`.
 
-### 3.4. Loopback testing
+### 3.4. Loopback testing without flow control
 When typing in text in the first terminal, the typed text should be received
 and displayed by the second terminal (which is operating independent of the
 first one), and vice versa.
@@ -161,34 +159,34 @@ LED (for the transmission of data from UART0) of the Waveshare interface
 should flicker together with the blue `RXD1` LED (for the reception of data
 by `UART1`).
 
-       Also, when typing in the second terminal (associated with UART1),
-       the green TXD1 LED (for the transmission of data from UART1) of
-       the Waveshare interface should flicker together with the blue RXD0
-       LED (for the reception of data by UART0).
+Also, when typing in the second terminal (associated with `UART1`), the green
+`TXD1` LED (for the transmission of data from `UART1`) of the Waveshare
+interface should flicker together with the blue `RXD0` LED (for the reception
+of data by `UART0`).
 
-4. Checking loopback with CTS/RTS flow control
+## 4. Checking loopback with CTS/RTS flow control
+We will now carry out the same test with loopback of the signals, but now also
+apply flow control, using the extra UART handshake lines
+```
+    RTS = Request To Send
+    CTS = Clear To Send
+```
+What CTS/RTS actually does is to enable hardware flow control, for example
+used for preventing buffer overruns and throttling fast transfers.
+The CTS/RTS flow control is not required for ordinary UART communication,
+and most hobby/microcontroller UART setups only make use of the standard
+TX, RX and GND, ignoring the CTS and RTS pins entirely.
 
-   We will now carry out the same test with loopback of the signals, but
-   now also apply flow control, using the extra UART handshake lines
+### 4.1. Hardware wiring for flow control with the UART
+1. Connect the TXD pin of UART0 with the RXD pin of UART1.
+2. Connect the RXD pin of UART0 with the TXD pin of UART1.
+3. Connect the RTS pin of UART0 with the CTS pin of UART1.
+4. Connect the CTS pin of UART0 with the RTS pin of UART1.
+5. Connect the GND pin of UART0 with the GND pin of UART1.
 
-       RTS = Request To Send
-       CTS = Clear To Send
-
-   What CTS/RTS actually does is to enable hardware flow control, for example
-   used for preventing buffer overruns and throttling fast transfers.
-   The CTS/RTS flow control is not required for ordinary UART communication,
-   and most hobby/microcontroller UART setups only make use of the standard
-   TX, RX and GND, ignoring the CTS and RTS pins entirely.
-
-   4.1. Connect the TXD pin of UART0 with the RXD pin of UART1.
-        Connect the RXD pin of UART0 with the TXD pin of UART1.
-        Connect the RTS pin of UART0 with the CTS pin of UART1.
-        Connect the CTS pin of UART0 with the RTS pin of UART1.
-        Connect the GND pin of UART0 with the GND pin of UART1.
-   
-        Conceptually, just as in the case of the TX/RX pins, we need to cross
-        also the RTS/CTS pins between the two UARTs, as illustrated below.
-
+Conceptually, just as in the case of the TX/RX pins, we need to cross also the
+RTS/CTS pins between the two UARTs, as illustrated below.
+```
              ----------                     ----------
              | UART 0 |                     | UART 1 |
              ----------                     ----------
@@ -200,31 +198,32 @@ by `UART1`).
                 CTS <------------------------- RTS
 
                 GND -------------------------- GND
+```
 
-   4.2. Power up the Waveshare interface by connecting it with the USB cable
-        to the computer again.
+### 4.2. Power up the Waveshare interface
+Power up the Waveshare interface by connecting it with the USB cable to the
+computer again.
 	
-   4.3. Start two (2) GTKTerm terminals as two separate processes, each one
-        connecting to a separate UART and just as in the previous case without
-        flow control, with the slight change of the --flow option, which we
-        now instead set to CTS, by
+### 4.3. Start the GTKTerm terminals
+Start two (2) GTKTerm terminals as two separate processes, each one connecting
+to a separate UART and just as in the previous case without flow control, with
+the slight change of the --flow option, which we now instead set to CTS, by
+```bash
+gtkterm --port /dev/ttyACM0 --flow CTS --speed 115200 --bits 8 --stopbits 1 --parity none &
+gtkterm --port /dev/ttyACM1 --flow CTS --speed 115200 --bits 8 --stopbits 1 --parity none &
+```
 
-           gtkterm --port /dev/ttyACM0 ..speed 115200 --bits 8 \
-	           --stopbits 1 --parity none --flow CTS &
-           gtkterm --port /dev/ttyACM1 ..speed 115200 --bits 8 \
-	           --stopbits 1 --parity none --flow CTS &
+### 4.4. Loopback testing with RTS/CTS flow control
+When typing in text in the first terminal, the typed text should be received
+and displayed by the second terminal (which is operating independent of the
+first one), and vice versa.
 
-  4.4. When typing in text in the first terminal, the typed text should be
-       received and displayed by the second terminal (which is operating
-       independent of the first one), and vice versa.
+When typing in the first terminal (associated with `UART0`), the green `TXD0`
+LED (for the transmission of data from UART0) of the Waveshare interface should
+flicker together with the blue `RXD1` LED (for the reception of data by
+`UART1`).
 
-       When typing in the first terminal (associated with UART0), the green
-       TXD0 LED (for the transmission of data from UART0) of the Waveshare
-       interface should flicker together with the blue RXD1 LED (for the
-       reception of data by UART1).
-
-       Also, when typing in the second terminal (associated with UART1),
-       the green TXD1 LED (for the transmission of data from UART1) of
-       the Waveshare interface should flicker together with the blue RXD0
-       LED (for the reception of data by UART0).
-
+Also, when typing in the second terminal (associated with `UART1`), the green
+`TXD1` LED (for the transmission of data from `UART1`) of the Waveshare
+interface should flicker together with the blue `RXD0` LED (for the reception
+of data by `UART0`).
