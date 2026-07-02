@@ -100,14 +100,12 @@ We now launch GTKTerm without any RTS/CTS control, just using the `TXD` and
 `RXD` pins. We do this either "as is" or with options explicitly stated at
 startup:
 ```bash
-sudo gtkterm --port /dev/ttyACM0 --speed 115200 --bits 8 \
-                         --stopbits 1 --parity none --flow none
+sudo gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none
 ```
 Alternatively, we can launch with RTS/CTS control enabled, by changing
 the flow switch to `--flow CTS`, instead using
 ```bash
-sudo gtkterm --port /dev/ttyACM0 --speed 115200 --bits 8 \
-                        --stopbits 1 --parity none --flow CTS
+sudo gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none
 ```
 Even with nothing connected to the UART, you should see the `TXD0` LED flicker
 whenever you type anything in the GTKTerm terminal.
@@ -189,17 +187,17 @@ TX, RX and GND, ignoring the CTS and RTS pins entirely.
 Conceptually, just as in the case of the TX/RX pins, we need to cross also the
 RTS/CTS pins between the two UARTs, as illustrated below.
 ```
-             ----------                     ----------
-             | UART 0 |                     | UART 1 |
-             ----------                     ----------
+     ----------                   ----------
+     | UART 0 |                   | UART 1 |
+     ----------                   ----------
 
-                TX  ------------------------->  RX
-                RX  <-------------------------  TX
+        TX  ----------------------->  RX
+        RX  <-----------------------  TX
 
-                RTS -------------------------> CTS
-                CTS <------------------------- RTS
+        RTS -----------------------> CTS
+        CTS <----------------------- RTS
 
-                GND -------------------------- GND
+        GND ------------------------ GND
 ```
 
 ### 4.2. Power up the Waveshare interface
