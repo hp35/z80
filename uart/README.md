@@ -2,7 +2,7 @@
 
 **Fredrik Jonsson**
 July 2, 2026<br>
-[https://github.com/hp48/z80/waveshare/README.md](https://github.com/hp48/z80/waveshare/README.md)
+[https://github.com/hp35/z80/tree/main/uart](https://github.com/hp35/z80/tree/main/uart)
 
 In this tutorial, we will use GTKTerm [1] together with the Waveshare USB to
 UART/I2C/SPI/JTAG interface [2] to show how a simple UART communication channel
@@ -39,15 +39,19 @@ USB cable (USB-A to USB-B), with the switches of the interface set to 5V and
 S1 and S2 both to OFF (in order to use the UART ports). Check that the red
 power light (PWR) is lit.
 
+![Waveshare USB to UART/I2C/SPI/JTAG interface with the switches of the
+interface set to 5V and S1 and S2 both to OFF.](waveshare-b.jpg)
+<b>Figure 2.</b>Waveshare USB to UART/I2C/SPI/JTAG interface with the
+switches of the interface set to 5V and S1 and S2 both to OFF.
+
 ### Check for the `/dev/ttyACM0` and `/dev/ttyACM0` devices
 Make sure that the two UARTs of the Waveshare interface shows up at your
 computer as the two devices /dev/ttyACM0 and /dev/ttyACM1:
 ```bash
 ls /dev/ttyACM*
-```
-```
-crw-rw---- 1 root dialout 166, 0 Jul  2 10:39 /dev/ttyACM0
-crw-rw---- 1 root dialout 166, 1 Jul  2 10:23 /dev/ttyACM1
+
+   crw-rw---- 1 root dialout 166, 0 Jul  2 10:39 /dev/ttyACM0
+   crw-rw---- 1 root dialout 166, 1 Jul  2 10:23 /dev/ttyACM1
 ```
 
 ### 2.3. User permissions for the device drivers
@@ -57,10 +61,9 @@ I personally find it inconvenient and not kosher to every now and then use
 ```bash
 sudo chmod a+rw /dev/ttyACM*
 ls -l /dev/tty*
-```
-```
-crw-rw-rw- 1 root dialout 166, 0 Jul  2 10:39 /dev/ttyACM0
-crw-rw-rw- 1 root dialout 166, 1 Jul  2 10:23 /dev/ttyACM1
+
+   crw-rw-rw- 1 root dialout 166, 0 Jul  2 10:39 /dev/ttyACM0
+   crw-rw-rw- 1 root dialout 166, 1 Jul  2 10:23 /dev/ttyACM1
 ```
 
 ### 2.4. Permament fix of permission problems
