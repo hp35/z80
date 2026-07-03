@@ -1,8 +1,6 @@
 # Configuration of GTKTerm and Waveshare USB to UART/I2C/SPI/JTAG
 <em>Fredrik Jonsson, July 3, 2026</em></br>
-[https://github.com/hp35/z80/tree/main/uart](https://github.com/hp35/z80/tree/main/uart)
-[https://github.com/hp35/z80/tree/main/uart]
-(https://github.com/hp35/z80/tree/main/uart)
+Location: https://github.com/hp35/z80/tree/main/uart
 
 In this tutorial, we will use GTKTerm [^1] together with the Waveshare USB to
 UART/I2C/SPI/JTAG interface [^2] to show how a simple UART communication channel
