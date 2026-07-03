@@ -1,8 +1,8 @@
 # Configuration of GTKTerm and Waveshare USB to UART/I2C/SPI/JTAG
-
-**Fredrik Jonsson**
-July 2, 2026</br>
+<em>Fredrik Jonsson, July 3, 2026</em></br>
 [https://github.com/hp35/z80/tree/main/uart](https://github.com/hp35/z80/tree/main/uart)
+[https://github.com/hp35/z80/tree/main/uart]
+(https://github.com/hp35/z80/tree/main/uart)
 
 In this tutorial, we will use GTKTerm [^1] together with the Waveshare USB to
 UART/I2C/SPI/JTAG interface [^2] to show how a simple UART communication channel
@@ -24,19 +24,25 @@ with USB, in a loop configuration for testing purposes, in which UART0 is
 communicating with UART1.
 
 ## 1. Default settings
+The following assumes that you are using a Linux-based system together with the
+Waveshare USB to UART/I2C/SPI/JTAG interface, with `GTKTerm?  [^1] as the tool
+of serial communication. Other excellent terminal emulators are for example
+`tio` or `minicom` via the command line, and the procedure for establishing
+the communication will be very similar.
 
-   For the UART side in GTKTerm, the correct settings depend mostly on the
-   device you connect to, not the Waveshare interface itself. The adapter
-   is usually transparent to these settings.
+For the UART side in GTKTerm, the correct settings depend mostly on the device
+you connect to, not the Waveshare interface itself. The adapter is usually
+transparent to these settings.
 
-   That said, the most common/default settings for the classic "115200 8N1"
-   setup are:
-
-        Baud rate: 115200
-        Data bits: 8
-        Parity: None
-        Stop bits: 1
-        Flow control: None
+That said, the most common/default settings for the classic "115200 8N1" setup
+are:
+```
+  Baud rate: 115200
+  Data bits: 8
+  Parity: None
+  Stop bits: 1
+  Flow control: None
+```
 
 ## 2. Basic setup
 
@@ -100,12 +106,12 @@ We now launch GTKTerm without any RTS/CTS control, just using the `TXD` and
 `RXD` pins. We do this either "as is" or with options explicitly stated at
 startup:
 ```bash
-sudo gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none
+gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none
 ```
 Alternatively, we can launch with RTS/CTS control enabled, by changing
 the flow switch to `--flow CTS`, instead using
 ```bash
-sudo gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none
+gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none
 ```
 Even with nothing connected to the UART, you should see the `TXD0` LED flicker
 whenever you type anything in the GTKTerm terminal.
@@ -187,17 +193,17 @@ TX, RX and GND, ignoring the CTS and RTS pins entirely.
 Conceptually, just as in the case of the TX/RX pins, we need to cross also the
 RTS/CTS pins between the two UARTs, as illustrated below.
 ```
-     ----------                   ----------
-     | UART 0 |                   | UART 1 |
-     ----------                   ----------
+  ----------              ----------
+  | UART 0 |              | UART 1 |
+  ----------              ----------
 
-        TX  ----------------------->  RX
-        RX  <-----------------------  TX
+     TX  ------------------>  RX
+     RX  <------------------  TX
 
-        RTS -----------------------> CTS
-        CTS <----------------------- RTS
+     RTS ------------------> CTS
+     CTS <------------------ RTS
 
-        GND ------------------------ GND
+     GND ------------------- GND
 ```
 
 ### 4.2. Power up the Waveshare interface
