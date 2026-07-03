@@ -132,7 +132,16 @@ without hardware flow control.
 1. Connect the `TXD` pin of `UART0` with the `RXD` pin of `UART1`.
 2. Connect the `RXD` pin of `UART0` with the `TXD` pin of `UART1`.
 3. Connect the `GND` pin of `UART0` with the `GND` pin of `UART1`.
+```
+  ----------              ----------
+  | UART 0 |              | UART 1 |
+  ----------              ----------
 
+     TX  ------------------>  RX
+     RX  <------------------  TX
+
+     GND ------------------- GND
+```
 In principle, this connection of ground is not needed as the two UARTs in the
 Waveshare interface share the same griynd, but just for the sake of illustrating
 how two different UARTs should be communicating, they should have a ground line
