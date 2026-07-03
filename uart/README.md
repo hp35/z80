@@ -109,7 +109,7 @@ gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --p
 Alternatively, we can launch with RTS/CTS control enabled, by changing
 the flow switch to `--flow CTS`, instead using
 ```bash
-gtkterm --port /dev/ttyACM0 --flow none --speed 115200 --bits 8 --stopbits 1 --parity none
+gtkterm --port /dev/ttyACM0 --flow CTS --speed 115200 --bits 8 --stopbits 1 --parity none
 ```
 Even with nothing connected to the UART, you should see the `TXD0` LED flicker
 whenever you type anything in the GTKTerm terminal.
