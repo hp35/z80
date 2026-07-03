@@ -6,10 +6,10 @@
 
 In this tutorial, we will use GTKTerm [^1] together with the Waveshare USB to
 UART/I2C/SPI/JTAG interface [^2] to show how a simple UART communication channel
-is setup. In particular, we will show how we with the Waveshare interface,
-which internally contains two independently operated UART interfaces, can
-check the communication by simply having the two interfaces communicating
-with each other.
+is setup on a standard Linux or Raspberry Pi system. In particular, we show how
+we with the Waveshare interface, which internally contains two independently
+operated UART interfaces, can check the communication by simply having the two
+interfaces communicating with each other.
 
 [^1]: Willem van den Akker, <em>GTKTerm: A GTK+ Serial Port Terminal</em>,
       [https://github.com/wvdakker/gtkterm]
@@ -25,7 +25,7 @@ communicating with UART1.
 
 ## 1. Default settings
 The following assumes that you are using a Linux-based system together with the
-Waveshare USB to UART/I2C/SPI/JTAG interface, with `GTKTerm?  [^1] as the tool
+Waveshare USB to UART/I2C/SPI/JTAG interface, with `GTKTerm`  [^1] as the tool
 of serial communication. Other excellent terminal emulators are for example
 `tio` or `minicom` via the command line, and the procedure for establishing
 the communication will be very similar.
