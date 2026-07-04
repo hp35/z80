@@ -1,5 +1,5 @@
 # Configuration of GTKTerm and Waveshare USB to UART/I2C/SPI/JTAG
-<em>Fredrik Jonsson, July 3, 2026</em></br>
+<em>Fredrik Jonsson, July 4, 2026</em></br>
 Location: https://github.com/hp35/z80/tree/main/uart
 
 In this tutorial, we will use GTKTerm [^1] together with the Waveshare USB to
@@ -143,7 +143,7 @@ without hardware flow control.
      GND ------------------- GND
 ```
 In principle, this connection of ground is not needed as the two UARTs in the
-Waveshare interface share the same griynd, but just for the sake of illustrating
+Waveshare interface share the same ground, but just for the sake of illustrating
 how two different UARTs should be communicating, they should have a ground line
 interconnecting them, determining the base voltage of the signal levels.
 
