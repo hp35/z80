@@ -240,3 +240,89 @@ Also, when typing in the second terminal (associated with `UART1`), the green
 `TXD1` LED (for the transmission of data from `UART1`) of the Waveshare
 interface should flicker together with the blue `RXD0` LED (for the reception
 of data by `UART0`).
+
+## 5. How much power can the Waveshare UART deliver via the VCC (+5V) pin?
+
+One should not regard the `VCC` pin of the UART as a general-purpose power
+supply, as it is intended to power small target circuits or provide a logic
+reference, not to supply substantial loads. Note: `VCC` is either +3.3V or
++5V, depending on the setting of the voltage switch at the back side of the
+Waveshare interface.
+
+### 5.1. General considerations
+Unfortunately, Waveshare does not specify a maximum output current for the
+`VCC` pin in either the product page or the wiki. Waveshare only state that
+the module is powered from the USB 5V supply, and has a resettable fuse for
+overcurrent protection, and that the interface itself consumes about 55-65 mA
+during normal operation. The 5 V VCC pin is essentially connected to the USB
+power rail through the module's protection circuitry (resettable fuse, ESD
+protection). The rating of the onboard resettable fuse is not specified by
+Waveshare, and neither is the voltage drop across the protection circuitry.
+
+Therefore, as a practical recommendation and rule of thumb, it may be
+considered safe to use the Waveshare interface as power supply for small
+logic circuits (tens of mA), UART interfaces, sensors, level shifters, etc.
+Most probably, acceptable loads are around 100–200 mA, provided that the total
+USB current remains modest. One should however clearly avoid using the
+interface as the power supply of larger boards (say, an Arduino, Raspberry Pi
+or the RC2014), motors, relays, displays with backlights or similar directly
+from the `VCC` pin.
+
+### 5.2. If the UART communication becomes unreliable
+Interestingly, Waveshare's own troubleshooting guide says that <em>if
+communication becomes unreliable because a connected device has high power
+consumption, you should use an external power supply for the target device
+and simply connect the grounds together.</em>
+This statement is a strong indication that the `VCC` output pin of the
+Waveshare interface is not intended as a high-current supply.
+
+### 5.3. Specifically for the RC2014 Z80 computer
+The RC2014 Z80 computer should not be powered by the Waveshare's `VCC` pin.
+Even a minimal RC2014 can draw well over 100 mA, and larger configurations with
+multiple modules can require several hundred milliamps. Measured in "idling
+mode" (see Figs. 4 and 5) without any programs running, the basic RC2014
+Mini II is drawing about 76 mA, which seems to be above the limit of the
+<i>Waveshare USB to UART/I2C/SPI/JTAG</i> interface.
+
+![Baseline current surge of the Waveshare USB to UART/I2C/SPI/JTAG interface
+without any other device attached.](waveshare-d.jpg)</br>
+<b>Figure 4.</b> Baseline current surge of the <i>Waveshare USB to
+UART/I2C/SPI/JTAG</i> interface with without any other device attached,
+measured to be about 43 mA, or 220 mW.](waveshare-d.jpg)</br>
+
+![Current surge of the Waveshare USB to UART/I2C/SPI/JTAG interface
+with the basic RC2014 Mini II Z80 computer connected to the UART (without the
+CP/M Upgrade hardware attached).](waveshare-e.jpg)</br>
+<b>Figure 5.</b> Current surge of the <i>Waveshare USB to UART/I2C/SPI/JTAG</i>
+interface with the basic RC2014 Mini II Z80 computer connected to the UART
+(without the CP/M Upgrade hardware attached), measured to be about 119 mA,
+or 608 mW. The conclusion is that the RC2014 Mini II Z80 computer draws about
+119&minus;43 mA = 76 mA, which is slightly too much to drive for the `VCC`
+pin of the interface.
+
+However, the direct integrated USB-to-TTL interface from the same company seems
+to perfectly well be powering the single-board RC2014 Mini II Z80 computer
+without the CP/M Upgrade hardware attached. <em>Hence, it seems like the
+"industrial" variant of the Waveshare interface actually is coping less
+well when it comes to power supply using the `VCC`pin of the UART.</em>
+
+In any case, the recommentation is to always power the RC2014 Mini II computer
+using a separate, regulated 5 V supply such as an iPhone charger or similar.
+Here it is important that the power supply shares the same signal ground as the
+FTDI connector of the UART, as the signal levels otherwise run a risk of being
+corrupted.
+
+Hence, to be on the safe side, use the following connections:
+```
+  ----------              ----------
+  | UART 0 |              | RC2014 |
+  ----------              ----------
+
+     TX  ------------------>  RX
+     RX  <------------------  TX
+
+     RTS ------------------> CTS
+     CTS <------------------ RTS
+
+     GND ------------------- GND
+```
