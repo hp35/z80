@@ -1,5 +1,5 @@
 # Configuration of GTKTerm and Waveshare USB to UART/I2C/SPI/JTAG
-<em>Fredrik Jonsson, July 4, 2026</em></br>
+<em>Fredrik Jonsson, July 24, 2026</em></br>
 Location: https://github.com/hp35/z80/tree/main/uart
 
 In this tutorial, we will use GTKTerm [^1] together with the Waveshare USB to
@@ -84,9 +84,9 @@ However, devices in /dev/tty (and related ports like `/dev/ttyUSB0` or
 `/dev/ttyACM0`) do not keep permissions set by chmod because they are
 virtual files which are created dynamically by the kernel and `udev`
 every time the system boots, a user logs in, or a device is reconnected.
-Therefore, a more permanent fix of the issue of permissions is to instead
+<em>Therefore, a more permanent fix of the issue of permissions is to instead
 permanently add your user name to the system group that owns the device
-rather than changing the device's permissions.
+rather than changing the device's permissions every now and then.</em>
 
 Do this by the following by noting the name of the group obtained by
 `ls /dev/ttyACM*`, in this case `dialout`. Add your current user (or a
