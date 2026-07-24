@@ -276,7 +276,7 @@ and simply connect the grounds together.</em>
 This statement is a strong indication that the `VCC` output pin of the
 Waveshare interface is not intended as a high-current supply.
 
-### 5.3. Specifically for the RC2014 Z80 computer
+### 5.3. Specifically for the RC2014 Z80 single-board computer
 The RC2014 Z80 computer should not be powered by the Waveshare's `VCC` pin.
 Even a minimal RC2014 can draw well over 100 mA, and larger configurations with
 multiple modules can require several hundred milliamps. Measured in "idling
