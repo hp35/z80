@@ -16,8 +16,7 @@ any port connected to the `UART` interface [^4], like `/dev/ttyUSB0`,
 `SCMTERM` script as being a sort-of "mini-miniterm".
 
 [^1]: Small Computer Monitor by Stephen C. Cousins, www.scc.me.uk.
-      For documentation and source, see https://smallcomputercentral.com/
-      /small-computer-monitor/small-computer-monitor-v1-0/
+      For documentation and source, see https://smallcomputercentral.com/small-computer-monitor/small-computer-monitor-v1-0/
 [^2]: RC2014 Mini II, https://z80kits.com/shop/rc2014-mini-ii/
 [^3]: Willem van den Akker, GTKTerm: A GTK+ Serial Port Terminal,
       https://github.com/wvdakker/gtkterm.
