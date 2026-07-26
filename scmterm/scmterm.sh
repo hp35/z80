@@ -299,8 +299,8 @@ scmterm_info()
     echo "Available commands in command mode:"
     echo "  send <file.hex>   Send Intel HEX file"
     echo "  info              Display SCMTERM configuration"
-    echo "  quit              Exit command mode and return to SCM.\n"
-    echo
+    echo "  quit              Exit command mode and return to SCM."
+    echo ""
 }
 
 #
@@ -321,7 +321,8 @@ command_mode() {
     echo "Valid commands within command mode:"
     echo "    send <file.hex>  Send Intel HEX file."
     echo "    info             Display the SCMTERM communication settings."
-    echo "    quit             Exit command mode and return to SCM.\n"
+    echo "    quit             Exit command mode and return to SCM."
+    echo ""
     while true
     do
         printf "cmd> "
