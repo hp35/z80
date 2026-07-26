@@ -41,12 +41,13 @@ Options:
                          1 (default)
                          2
          -f              Enable RTS/CTS hardware flow control
-         -l <logdir>     Record the entire SCMTERM session to log file located
-                         in the <logdir> directory. If no -l command-line
-                         option is present, then SCMTERM will check if there
-                         is a ./log/ directory in the current working directory
-                         where SCMTERM was invoked; if found to exist logging
-                         will be done to this directory regardless of a missing
+         -l <logdir>     Record the entire SCMTERM session to log file
+                         located in the <logdir> directory.
+                         If no -l command-line option is present, then
+                         SCMTERM will check if there is a ./log/ directory
+                         in the current working directory where SCMTERM
+                         was invoked; if found to exist logging will be
+                         done to this directory regardless of a missing
                          -l option.
          -h              Display this help message
 
