@@ -45,6 +45,9 @@ SCM R4 monitor
 The overall design decisions for `SCMTERM` are as follows:
   * Keeping SCMTERM in Bash rather than immediately rewriting it in, say, C
     or Python.
+  * Eliminating the need for running (the otherwise excellent) `GTKTerm`
+    in a separate window; everything should be possible to do via a plain
+    terminal under Linux.
   * Keeping the RC2014 side untouched, that is to say with no changes to SCM
     whatsoever.
   * Logging is optional.
