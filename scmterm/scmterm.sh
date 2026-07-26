@@ -30,6 +30,13 @@
 #                         1 (default)
 #                         2
 #         -f              Enable RTS/CTS hardware flow control
+#         -l <logdir>     Record the entire SCMTERM session to log file
+#                         located in the <logdir> directory. If no -l
+#                         command-line option is present, then SCMTERM
+#                         will check if there is a ./log/ directory in the
+#                         current working directory where SCMTERM was invoked;
+#                         if found to exist logging will be done to this
+#                         directory regardless of a missing -l option.
 #         -h              Display this help message
 #
 #     Default serial configuration:
@@ -98,6 +105,13 @@ FLOWCONTROL=0
 HEX_DELAY=0.02
 
 #
+# Parameters for logging of the SCMTERM session.
+#
+LOGGING=0
+LOGDIR=""
+LOGFILE=""
+
+#
 # Startup banner of the SCMTERM script.
 #
 scmterm_banner() {
@@ -130,6 +144,12 @@ Options:
                     1 (default)
                     2
     -f              Enable RTS/CTS hardware flow control
+    -l <logdir>     Record the entire SCMTERM session to log file located
+                    in the <logdir> directory. If no -l command-line option
+                    is present, then SCMTERM will check if there is a ./log/
+                    directory in the current working directory where SCMTERM
+                    was invoked; if found to exist logging will be done to
+                    this directory regardless of a missing -l option.
     -h              Display this help message
 
 Default serial configuration:
@@ -153,10 +173,72 @@ Command mode:
     send <file.hex>
         Send Intel HEX file to SCM.
     info
-        Display the SCMTERM communication settings."
+        Display the SCMTERM communication settings.
     quit
         Return to SCM terminal mode.
 EOF
+}
+
+#
+# Initialize any logging (recording) of the SCMTERM session.
+#
+init_logging() {
+
+    #
+    # Explicit directory supplied
+    #
+    if [[ -n "$LOGDIR" ]]
+    then
+
+        if [[ ! -d "$LOGDIR" ]]
+        then
+            echo "Logging directory does not exist: $LOGDIR"
+            exit 1
+        fi
+    else
+        #
+        # Automatic ./log detection
+        #
+        if [[ -d "./log" ]]
+        then
+            LOGDIR="./log"
+        else
+            return
+        fi
+    fi
+    LOGFILE="$LOGDIR/scmterm-$(date '+%Y%m%d-%H:%M').log"
+    touch "$LOGFILE"
+    if [[ $? -ne 0 ]]
+    then
+        echo "Cannot create log file: $LOGFILE"
+        exit 1
+    fi
+    LOGGING=1
+    {
+        echo "=============================================="
+        echo "SCMTERM session started"
+        echo
+        echo "Date: $(date)"
+        echo "Device: $DEVICE"
+        echo "Serial: ${BAUD}-8-${PARITY}-${STOPBITS}"
+        echo
+        echo "=============================================="
+        echo
+    } >> "$LOGFILE"
+}
+
+log_write() {
+    if [[ "$LOGGING" -eq 1 ]]
+    then
+        printf "%s" "$1" >> "$LOGFILE"
+    fi
+}
+
+log_line() {
+    if [[ "$LOGGING" -eq 1 ]]
+    then
+        printf "%s\n" "$1" >> "$LOGFILE"
+    fi
 }
 
 #
@@ -209,24 +291,22 @@ save_terminal_state () {
 #
 cleanup() {
     stty "$OLDTTY"
-
     kill "$RX_PID" 2>/dev/null
-
     wait "$RX_PID" 2>/dev/null
-
     exec 3>&-
     exec 4<&-
-
-    echo
+    echo ""
 }
 
 #
-# Open UART for communication and enter "raw" keyboard mode.
+# Open UART for communication and enter "raw" keyboard mode. The '-opost'
+# option disables Linux output processing explicitly, avoiding the kernel
+# doing additional translations behind the curtains.
 #
 open_uart() {
     exec 3> "$DEVICE"
     exec 4< "$DEVICE"
-    stty -icanon -echo min 1 time 0
+    stty -icanon -echo onlcr min 1 time 0
 }
 
 #
@@ -235,8 +315,15 @@ open_uart() {
 receiver() {
     while true
     do
-        # dd bs=1 count=1 <&3 2>/dev/null
-	dd bs=1 count=1 <&4 2>/dev/null
+        BYTE=$(dd bs=1 count=1 <&4 2>/dev/null)
+        case "$BYTE" in
+            $'\r')
+                printf '\r\n'
+                log_write $'\r\n';;
+            *)
+                printf "%s" "$BYTE"
+                log_write "$BYTE";;
+        esac
     done
 }
 
@@ -277,8 +364,7 @@ send_hex() {
 #
 # Display the communication parameters of the SCMTERM.
 #
-scmterm_info()
-{
+scmterm_info() {
     echo "----------------------------------------"
     echo "SCMTERM communication settings"
     echo "----------------------------------------"
@@ -312,6 +398,13 @@ command_mode() {
     local ARG
 
     #
+    # Make sure that we log the entering of command mode (if we are logging).
+    #
+    log_line "----------------------------------------"
+    log_line "Entering SCMTERM terminal command mode"
+    log_line "----------------------------------------"
+
+    #
     # Stop the "raw" keyboard mode.
     #
     stty echo icanon
@@ -327,13 +420,19 @@ command_mode() {
     do
         printf "cmd> "
         read -r CMD ARG
+	log_line "cmd> $CMD $ARG"
         case "$CMD" in
             send)
                 send_hex "$ARG";;
             info)
                 scmterm_info;;
             quit)
+                log_line "----------------------------------------"
+                log_line "Leaving command mode of the SCMTERM terminal"
+                log_line "----------------------------------------"
+                echo "----------------------------------------"
                 echo "Leaving command mode of the SCMTERM terminal"
+                echo "----------------------------------------"
                 break;;
             "")
                 ;;
@@ -349,7 +448,6 @@ command_mode() {
     echo
 }
 
-
 #
 # Enter the main keyboard loop of SCMTERM.
 #
@@ -360,13 +458,6 @@ main_loop() {
         IFS= read -r -N1 KEY
 
         if [[ "$KEY" == $'\003' ]]
-        then
-            echo
-            echo "Leaving RC2014 terminal"
-            break
-        fi
-    
-        if [[ $(printf '%d' "'$KEY") -eq 3 ]]
         then
             echo
             echo "Leaving RC2014 terminal"
@@ -384,10 +475,13 @@ main_loop() {
                 command_mode;;
 
             $'\012'|$'\015')
-                printf '\r' >&3;;
+                printf '\r' >&3
+                log_write $'\r';;
 
             *)
-                printf '%s' "$KEY" >&3;;
+                printf '%s' "$KEY" >&3
+                log_write "$KEY";;
+
         esac
     done
 }
@@ -395,7 +489,7 @@ main_loop() {
 #
 # Parse any present command-line options.
 #
-while getopts ":d:b:p:s:fh" opt; do
+while getopts ":d:b:p:s:l:fh" opt; do
     case "$opt" in
         d)
             DEVICE="$OPTARG";;
@@ -405,6 +499,8 @@ while getopts ":d:b:p:s:fh" opt; do
             PARITY=$(echo "$OPTARG" | tr '[:lower:]' '[:upper:]');;
         s)
             STOPBITS="$OPTARG";;
+        l)
+            LOGDIR="$OPTARG";;
         f)
             FLOWCONTROL=1;;
         h)
@@ -424,6 +520,7 @@ done
 #
 # The 'main()' of the SCMTERM script. This is where we start as well as end.
 #
+init_logging
 configure_serial_interface
 save_terminal_state
 trap cleanup EXIT
