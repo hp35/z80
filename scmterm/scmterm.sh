@@ -112,16 +112,6 @@ LOGDIR=""
 LOGFILE=""
 
 #
-# Startup banner of the SCMTERM script.
-#
-scmterm_banner() {
-    echo -n "This is SCMTERM v.1.0. "
-    echo "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
-    echo "    Use 'Ctrl-T' to enter command mode."
-    echo "    Use 'Ctrl-X' or ']' to exit SCMTERM."
-}
-
-#
 # Usage message, direction on options.
 #
 usage() {
@@ -144,12 +134,14 @@ Options:
                     1 (default)
                     2
     -f              Enable RTS/CTS hardware flow control
-    -l <logdir>     Record the entire SCMTERM session to log file located
-                    in the <logdir> directory. If no -l command-line option
-                    is present, then SCMTERM will check if there is a ./log/
-                    directory in the current working directory where SCMTERM
-                    was invoked; if found to exist logging will be done to
-                    this directory regardless of a missing -l option.
+    -l <logdir>     Record the entire SCMTERM session to log file
+                    located in the <logdir> directory.
+                    If no -l command-line option is present, then
+                    SCMTERM will check if there is a ./log/ directory
+                    in the current working directory where SCMTERM
+                    was invoked; if found to exist logging will be
+                    done to this directory regardless of a missing
+                    -l option.
     -h              Display this help message
 
 Default serial configuration:
@@ -206,7 +198,7 @@ init_logging() {
             return
         fi
     fi
-    LOGFILE="$LOGDIR/scmterm-$(date '+%Y%m%d-%H:%M').log"
+    LOGFILE="$LOGDIR/scmterm-$(date '+%Y%m%d_%H%M').log"
     touch "$LOGFILE"
     if [[ $? -ne 0 ]]
     then
@@ -217,11 +209,9 @@ init_logging() {
     {
         echo "=============================================="
         echo "SCMTERM session started"
-        echo
         echo "Date: $(date)"
         echo "Device: $DEVICE"
         echo "Serial: ${BAUD}-8-${PARITY}-${STOPBITS}"
-        echo
         echo "=============================================="
         echo
     } >> "$LOGFILE"
@@ -239,6 +229,20 @@ log_line() {
     then
         printf "%s\n" "$1" >> "$LOGFILE"
     fi
+}
+
+#
+# Startup banner of the SCMTERM script.
+#
+scmterm_banner() {
+    echo -n "This is SCMTERM v.1.0. "
+    echo "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
+    echo "    Use 'Ctrl-T' to enter command mode."
+    echo "    Use 'Ctrl-X' or ']' to exit SCMTERM."
+    log_line "This is SCMTERM v.1.0."
+    log_line "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
+    log_line "    Use 'Ctrl-T' to enter command mode."
+    log_line "    Use 'Ctrl-X' or ']' to exit SCMTERM."
 }
 
 #
