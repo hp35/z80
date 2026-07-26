@@ -253,24 +253,31 @@ configure_serial_interface() {
     STTY_STOP=""
     case "$PARITY" in
         N)
-            STTY_PARITY="-parenb";;
+            STTY_PARITY="-parenb"
+	    ;;
         E)
-            STTY_PARITY="parenb -parodd";;
+            STTY_PARITY="parenb -parodd"
+	    ;;
         O)
-            STTY_PARITY="parenb parodd";;
+            STTY_PARITY="parenb parodd"
+	    ;;
         *)
             echo "Invalid parity: $PARITY"
-            exit 1;;
+            exit 1
+	    ;;
     esac
 
     case "$STOPBITS" in
         1)
-            STTY_STOP="-cstopb";;
+            STTY_STOP="-cstopb"
+	    ;;
         2)
-            STTY_STOP="cstopb";;
+            STTY_STOP="cstopb"
+	    ;;
         *)
             echo "Invalid stop bits: $STOPBITS"
-            exit 1;;
+            exit 1
+	    ;;
     esac
 
     if [[ "$FLOWCONTROL" -eq 1 ]]
@@ -323,10 +330,12 @@ receiver() {
         case "$BYTE" in
             $'\r')
                 printf '\r\n'
-                log_write $'\r\n';;
+                log_write $'\r\n'
+		;;
             *)
                 printf "%s" "$BYTE"
-                log_write "$BYTE";;
+                log_write "$BYTE"
+		;;
         esac
     done
 }
@@ -427,9 +436,11 @@ command_mode() {
 	log_line "cmd> $CMD $ARG"
         case "$CMD" in
             send)
-                send_hex "$ARG";;
+                send_hex "$ARG"
+		;;
             info)
-                scmterm_info;;
+                scmterm_info
+		;;
             quit)
                 log_line "----------------------------------------"
                 log_line "Leaving command mode of the SCMTERM terminal"
@@ -437,11 +448,13 @@ command_mode() {
                 echo "----------------------------------------"
                 echo "Leaving command mode of the SCMTERM terminal"
                 echo "----------------------------------------"
-                break;;
+                break
+		;;
             "")
                 ;;
             *)
-                echo "Unknown command: $CMD";;
+                echo "Unknown command: $CMD"
+		;;
         esac
     done
 
@@ -473,18 +486,22 @@ main_loop() {
             $'\003'|$'\030'|$'\035')
                 echo
                 echo "Leaving RC2014 terminal"
-                break;;
+                break
+		;;
 
             $'\024')
-                command_mode;;
+                command_mode
+		;;
 
             $'\012'|$'\015')
                 printf '\r' >&3
-                log_write $'\r';;
+                log_write $'\r'
+		;;
 
             *)
                 printf '%s' "$KEY" >&3
-                log_write "$KEY";;
+                log_write "$KEY"
+		;;
 
         esac
     done
@@ -496,28 +513,37 @@ main_loop() {
 while getopts ":d:b:p:s:l:fh" opt; do
     case "$opt" in
         d)
-            DEVICE="$OPTARG";;
+            DEVICE="$OPTARG"
+	    ;;
         b)
-            BAUD="$OPTARG";;
+            BAUD="$OPTARG"
+	    ;;
         p)
-            PARITY=$(echo "$OPTARG" | tr '[:lower:]' '[:upper:]');;
+            PARITY=$(echo "$OPTARG" | tr '[:lower:]' '[:upper:]')
+	    ;;
         s)
-            STOPBITS="$OPTARG";;
+            STOPBITS="$OPTARG"
+	    ;;
         l)
-            LOGDIR="$OPTARG";;
+            LOGDIR="$OPTARG"
+	    ;;
         f)
-            FLOWCONTROL=1;;
+            FLOWCONTROL=1
+	    ;;
         h)
             usage
-            exit 0;;
+            exit 0
+	    ;;
         :)
             echo "Option -$OPTARG requires an argument"
             echo "Use -h for help"
-            exit 1;;
+            exit 1
+	    ;;
         \?)
             echo "Unknown option: -$OPTARG"
             echo "Use -h for help"
-            exit 1;;
+            exit 1
+	    ;;
     esac
 done
 
