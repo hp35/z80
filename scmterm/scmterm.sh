@@ -11,7 +11,8 @@
 # requires a separate window for the operation. Using the SCMTERM script,
 # everything can be run directly from a single command line, operating via
 # any port connected to the UART interface [4], like /dev/ttyUSB0, /dev/ttyACM0
-# or /dev/ttyACM1.
+# or /dev/ttyACM1. In some sense, one may consider the present SCMTERM script
+# as being a sort-of "mini-miniterm".
 #
 # Usage:
 #     scmterm [options]
