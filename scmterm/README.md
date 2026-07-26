@@ -2,16 +2,18 @@
 <em>Fredrik Jonsson, July 26, 2026</em></br>
 Location: https://github.com/hp35/z80/tree/main/scmterm
 
-Bash script for interfacing the Small Computer Monitor (SCM) [^1] running
-on the RC2014 Z80 single card computer [^2] from a standard terminal in any
-Linux-based system like Debian, Fedora, Ubuntu or Raspbian (Raspberry Pi).
+Bash script `SCMTERM` for interfacing the Small Computer Monitor (SCM) [1]
+running on the RC2014 Z80 single card computer [2] from a standard terminal
+in any Linux-based system like Debian, Fedora, Ubuntu or Raspbian (Raspberry
+Pi).
 
 The idea behind the `SCMTERM` script is to provide an extremely light-weight
-alternative to the standard `GTKTerm` [^3] option of communication, which
+alternative to the standard `GTKTerm` [3] option of communication, which
 requires a separate window for the operation. Using the `SCMTERM` script,
 everything can be run directly from a single command line, operating via
-any port connected to the `UART` interface [^4], like `/dev/ttyUSB0`,
-`/dev/ttyACM0` or `/dev/ttyACM1`.
+any port connected to the `UART` interface [4], like `/dev/ttyUSB0`,
+`/dev/ttyACM0` or `/dev/ttyACM1`. In some sense, one may consider the present
+`SCMTERM` script as being a sort-of "mini-miniterm".
 
 ## Usage
 ```
@@ -59,7 +61,7 @@ Command mode:
              Return to SCM terminal mode.
 ```
 
-## Default initialization of SCMTERM communication parameters
+## Default SCMTERM communication parameters
 The default initialization of the `SCMTERM` communication parameters for the
 port is as follows.
 ```
@@ -84,13 +86,13 @@ If you wish the script to be installed elsewhere, simply edit the `TARGET`
 field in the enclosed `bash/Makefile`.
 
 ## References
-     [^1] Small Computer Monitor by Stephen C. Cousins, www.scc.me.uk.
+     [1] Small Computer Monitor by Stephen C. Cousins, www.scc.me.uk.
          For documentation and source, see https://smallcomputercentral.com/
          /small-computer-monitor/small-computer-monitor-v1-0/
-     [^2] RC2014 Mini II, https://z80kits.com/shop/rc2014-mini-ii/
-     [^3] Willem van den Akker, GTKTerm: A GTK+ Serial Port Terminal,
+     [2] RC2014 Mini II, https://z80kits.com/shop/rc2014-mini-ii/
+     [3] Willem van den Akker, GTKTerm: A GTK+ Serial Port Terminal,
          https://github.com/wvdakker/gtkterm.
-     [^4] Waveshare USB to UART/I2C/SPI/JTAG interface,
+     [4] Waveshare USB to UART/I2C/SPI/JTAG interface,
          https://www.waveshare.com/wiki/USB_TO_UART/I2C/SPI/JTAG
 
 ## Copyright
