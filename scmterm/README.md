@@ -23,6 +23,34 @@ any port connected to the `UART` interface [^4], like `/dev/ttyUSB0`,
 [^4]: Waveshare USB to UART/I2C/SPI/JTAG interface,
       https://www.waveshare.com/wiki/USB_TO_UART/I2C/SPI/JTAG
 
+## Workflow
+The idea is to use `SCMTERM` in a natural workflow from a Linux station over
+to SCM running on the RC2014 Z80 platform (or any similar platform running SCM)
+as
+```
+Linux workstation
+        |
+        |  SCMTERM
+        |
+USB-UART (/dev/ttyUSB0)
+        |
+        |
+RC2014 UART
+        |
+        |
+SCM R4 monitor
+        |
+        +--> assemble / inspect memory / run programs
+```
+The overall design decisions for `SCMTERM` are as follows:
+  * Keeping SCMTERM in Bash rather than immediately rewriting it in, say, C
+    or Python.
+  * Keeping the RC2014 side untouched, that is to say with no changes to SCM
+    whatsoever.
+  * Logging is optional.
+  * Using command mode as a local terminal escape layer.
+  * Avoiding unnecessary dependencies. ("Keep it simple, stupid!")
+
 ## Usage
 ```
 Usage:
