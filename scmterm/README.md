@@ -127,10 +127,10 @@ Installation in a Linux/OSX/Unix machine is simple. In order to install the
 script and a symbolic link in the default location `/usr/local/bin/`, simply
 exectute the following in a terminal:
 ```bash
-cd bash; sudo make install
+cd scmterm; sudo make install
 ```
 If you wish the script to be installed elsewhere, simply edit the `TARGET`
-field in the enclosed `bash/Makefile`.
+field in the enclosed `Makefile`.
 
 ## Copyright
 Copyright (C) 2026, Fredrik Jonsson, under GPL 3.0.
