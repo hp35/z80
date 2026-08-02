@@ -33,14 +33,15 @@ develop, test, and debug machine code without requiring a full operating
 system like, say, CP/M.
 
 Typical features of SCM include:
-
  * Memory examination and editing – View and modify RAM contents.
  * Register inspection and editing – Read or change the Z80 CPU registers.
  * Program execution – Start execution from any memory address.
  * Breakpoints and single-stepping – Useful for debugging.
- * Assembler and disassembler – Many versions include built-in tools for assembling and disassembling Z80 instructions.
+ * Assembler and disassembler – Many versions include built-in tools
+   for assembling and disassembling Z80 instructions.
  * Loading of Intel HEX [^5] files – Upload programs over a serial connection.
- * ROM extensions – Some implementations support additional commands stored in expansion ROMs.
+ * ROM extensions – Some implementations support additional commands stored
+   in expansion ROMs.
 
 SCM is widely used on homebrew and hobbyist Z80 computers, including systems
 based on the RC2014 bus and similar projects. It provides a convenient
@@ -54,6 +55,9 @@ For example, an SCM session might look like this:
 > R           ; Show registers
 > G 9000      ; Go (execute) at address 9000h
 ```
+The point of the `SCMTERM` program is to enable a simple and straightforward
+connection to the SCM firmware straight from a standard terminal in Linux,
+without having to use separate programs like `GTKTerm` or similar.
 
 ## Workflow
 The idea is to use `SCMTERM` in a natural workflow from a Linux station over
