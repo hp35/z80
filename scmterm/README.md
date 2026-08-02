@@ -22,6 +22,7 @@ any port connected to the `UART` interface [^4], like `/dev/ttyUSB0`,
       https://github.com/wvdakker/gtkterm.
 [^4]: Waveshare USB to UART/I2C/SPI/JTAG interface,
       https://www.waveshare.com/wiki/USB_TO_UART/I2C/SPI/JTAG
+[^5]: Wikipedia, <em>Intel HEX</em>, https://en.wikipedia.org/wiki/Intel_HEX
 
 ## What is SCM in the first place?
 In the context of the Z80, SCM stands for <em>Small Computer Monitor.</em>
@@ -53,8 +54,6 @@ For example, an SCM session might look like this:
 > R           ; Show registers
 > G 9000      ; Go (execute) at address 9000h
 ```
-
-[^5]: Wikipedia, <em>Intel HEX</em>, https://en.wikipedia.org/wiki/Intel_HEX
 
 ## Workflow
 The idea is to use `SCMTERM` in a natural workflow from a Linux station over
