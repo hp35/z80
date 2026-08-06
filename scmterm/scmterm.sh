@@ -112,9 +112,86 @@ LOGDIR=""
 LOGFILE=""
 
 #
-# Terminal output lock.
+# Intel HEX file information to be extracted during upload to SCM/Z80.
+# Last modified: 202660806/FJ
 #
-# TERM_LOCK=0
+HEX_RECORDS=0
+HEX_DATA_RECORDS=0
+HEX_EOF_RECORDS=0
+HEX_EXTSEG_RECORDS=0
+HEX_EXTLIN_RECORDS=0
+HEX_STARTSEG_RECORDS=0
+HEX_STARTLIN_RECORDS=0
+HEX_DATA_BYTES=0
+HEX_LOWEST_ADDRESS=-1
+HEX_HIGHEST_ADDRESS=0
+
+#
+# Analyse an Intel HEX file for inherent information before upload to SCM/Z80.
+# Last modified: 202660806/FJ
+#
+analyse_hex() {
+    local FILE="$1"
+    local LINE
+    local LEN
+    local TYPE
+    local ADDR
+
+    #
+    # Reset statistics.
+    #
+    HEX_RECORDS=0
+    HEX_DATA_RECORDS=0
+    HEX_EOF_RECORDS=0
+    HEX_EXTSEG_RECORDS=0
+    HEX_EXTLIN_RECORDS=0
+    HEX_STARTSEG_RECORDS=0
+    HEX_STARTLIN_RECORDS=0
+    HEX_DATA_BYTES=0
+    HEX_LOWEST_ADDRESS=-1
+    HEX_HIGHEST_ADDRESS=0
+
+    while IFS= read -r LINE
+    do
+        [[ ${LINE:0:1} != ":" ]] && continue
+        [[ ${#LINE} -lt 11 ]] && continue
+        ((HEX_RECORDS++))
+        LEN=$((16#${LINE:1:2}))
+        ADDR=$((16#${LINE:3:4}))
+        TYPE=$((16#${LINE:7:2}))
+
+        case "$TYPE" in
+            0)
+                ((HEX_DATA_RECORDS++))
+                ((HEX_DATA_BYTES += LEN))
+                if (( HEX_LOWEST_ADDRESS < 0 || ADDR < HEX_LOWEST_ADDRESS ))
+                then
+                    HEX_LOWEST_ADDRESS=$ADDR
+                fi
+
+                if (( ADDR + LEN - 1 > HEX_HIGHEST_ADDRESS ))
+                then
+                    HEX_HIGHEST_ADDRESS=$((ADDR + LEN - 1))
+                fi
+                ;;
+            1)
+                ((HEX_EOF_RECORDS++))
+                ;;
+            2)
+                ((HEX_EXTSEG_RECORDS++))
+                ;;
+            3)
+                ((HEX_STARTSEG_RECORDS++))
+                ;;
+            4)
+                ((HEX_EXTLIN_RECORDS++))
+                ;;
+            5)
+                ((HEX_STARTLIN_RECORDS++))
+                ;;
+        esac
+    done < "$FILE"
+}
 
 #
 # Usage message, direction on options.
@@ -251,46 +328,15 @@ scmterm_banner() {
 }
 
 #
-# Acquire exclusive access to the terminal. This in order to avoid previously
-# (as of 20260804) interlaced sent and received text, say during transmission
-# of Intel HEX files in command mode (Ctrl-T), like:
-#
-#      Rea----------------------------------------
-#      Transfer complete...
-#      cmd> dy
-#
-#term_lock()
-#{
-#    while (( TERM_LOCK ))
-#    do
-#        sleep 0.01
-#    done
-#
-#    TERM_LOCK=1
-#}
-
-#
-# Release the terminal.
-#
-#term_unlock()
-#{
-#    TERM_LOCK=0
-#}
-
-#
 # Print a complete line atomically.
+# Last modified: 202660806/FJ
 #
-term_print()
-{
-#    term_lock
+term_print() {
     printf "%s\n" "$1"
-
     if (( LOGGING ))
     then
         printf "%s\n" "$1" >> "$LOGFILE"
     fi
-
-#    term_unlock
 }
 
 #
@@ -358,25 +404,10 @@ open_uart() {
 }
 
 #
-# Pause/resume the background receiver.
-# Last modified: 202660804/FJ
-#
-#pause_receiver()
-#{
-#    [[ -n "$RX_PID" ]] && kill -STOP "$RX_PID" 2>/dev/null
-#}
-
-#resume_receiver()
-#{
-#    [[ -n "$RX_PID" ]] && kill -CONT "$RX_PID" 2>/dev/null
-#}
-
-#
 # Restore the original terminal state after finishing.
 # Last modified: 202660804/FJ
 #
-cleanup()
-{
+cleanup() {
     #
     # Restore keyboard.
     #
@@ -412,62 +443,109 @@ receiver() {
 # machine code formatted as ASCII. For details on the Intel HEX code format,
 # see the Wikipedia article at https://en.wikipedia.org/wiki/Intel_HEX or
 # developer details at https://developer.arm.com/documentation/ka003292/1-0/
+# Last modified: 202660806/FJ
 #
 send_hex() {
     local FILE="$1"
     local LINE
+    local RECORDS=0
+    local BYTES=0
+    local LEN
+
     if [[ -z "$FILE" ]]
     then
-        echo "Usage: send <file.hex>"
+        term_print "Usage: send <file.hex>"
         return
     fi
+
     if [[ ! -f "$FILE" ]]
     then
-        echo "Error: Intel HEX file '$FILE' not found!"
+        term_print "Error: Intel HEX file '$FILE' not found!"
         return
     fi
-    term_print ""
-    term_print "Sending Intel HEX file $FILE"
-    term_print ""
+
+    #
+    # Scan the file prior to submission to SCM/Z80.
+    #
+    analyse_hex "$FILE"
+
+    kill -STOP "$RX_PID"
+
+    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "Intel HEX file analysis"
+    printf "%s\n" "----------------------------------------------------"
+    printf "File               : %s\n" "$FILE"
+    printf "Total records      : %d\n" "$HEX_RECORDS"
+    printf "Data records       : %d\n" "$HEX_DATA_RECORDS"
+    printf "EOF records        : %d\n" "$HEX_EOF_RECORDS"
+
+    if (( HEX_EXTSEG_RECORDS ))
+    then
+        printf "Ext. segment recs  : %d\n" "$HEX_EXTSEG_RECORDS"
+    fi
+
+    if (( HEX_EXTLIN_RECORDS ))
+    then
+        printf "Ext. linear recs   : %d\n" "$HEX_EXTLIN_RECORDS"
+    fi
+
+    printf "Data bytes         : %d\n" "$HEX_DATA_BYTES"
+
+    if (( HEX_LOWEST_ADDRESS >= 0 ))
+    then
+        printf "Lowest address     : %04XH\n" "$HEX_LOWEST_ADDRESS"
+        printf "Highest address    : %04XH\n" "$HEX_HIGHEST_ADDRESS"
+    fi
+
+    printf "\nUploading Intel HEX file $FILE to device ...\n\n"
+
+    kill -CONT "$RX_PID"
+
+    #
+    # Send the file.
+    #
     while IFS= read -r LINE
     do
-        #
-        # SCM expects CR terminated lines
-        #
         printf "%s\r" "$LINE" >&3
         sleep "$HEX_DELAY"
     done < "$FILE"
-    term_print "----------------------------------------------------"
-    term_print "Transfer complete of Intel HEX file '$FILE'"
-    term_print "----------------------------------------------------"
+
+    #
+    # Give SCM a chance to respond.
+    #
+    sleep 0.20
+
+    kill -STOP "$RX_PID"
+    printf "%s\n" ""
+    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "Transfer of $FILE completed successfully."
+    printf "%s\n" "----------------------------------------------------"
+    kill -CONT "$RX_PID"
 }
 
 #
 # Display the communication parameters of the SCMTERM.
 #
 scmterm_info() {
-    echo "----------------------------------------"
-    echo "SCMTERM communication settings"
-    echo "----------------------------------------"
-    echo "Device       : $DEVICE"
-    echo "Baud rate    : $BAUD"
-    echo "Data bits    : 8"
-    echo "Parity       : $PARITY"
-    echo "Stop bits    : $STOPBITS"
-
+    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "SCMTERM communication settings"
+    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "Device       : $DEVICE"
+    printf "%s\n" "Baud rate    : $BAUD"
+    printf "%s\n" "Data bits    : 8"
+    printf "%s\n" "Parity       : $PARITY"
+    printf "%s\n" "Stop bits    : $STOPBITS"
     if [[ "$FLOWCONTROL" -eq 1 ]]
     then
-        echo "Flow control : RTS/CTS enabled"
+        printf "%s\n" "Flow control : RTS/CTS enabled"
     else
-        echo "Flow control : disabled"
+        printf "%s\n" "Flow control : disabled"
     fi
-
-    echo "----------------------------------------"
-    echo "Available commands in command mode (Ctrl-T):"
-    echo "  send <file.hex>   Send Intel HEX file"
-    echo "  info              Display SCMTERM configuration"
-    echo "  quit              Exit command mode and return to SCM."
-    echo ""
+    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "Available SCMTERM commands in command mode (Ctrl-T):"
+    printf "%s\n" "  send <file.hex>   Send Intel HEX file."
+    printf "%s\n" "  info              Display SCMTERM configuration."
+    printf "%s\n" "  quit              Exit command mode and return to SCM."
 }
 
 #
