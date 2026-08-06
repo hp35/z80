@@ -114,7 +114,7 @@ LOGFILE=""
 #
 # Terminal output lock.
 #
-TERM_LOCK=0
+# TERM_LOCK=0
 
 #
 # Usage message, direction on options.
@@ -259,30 +259,30 @@ scmterm_banner() {
 #      Transfer complete...
 #      cmd> dy
 #
-term_lock()
-{
-    while (( TERM_LOCK ))
-    do
-        sleep 0.01
-    done
-
-    TERM_LOCK=1
-}
+#term_lock()
+#{
+#    while (( TERM_LOCK ))
+#    do
+#        sleep 0.01
+#    done
+#
+#    TERM_LOCK=1
+#}
 
 #
 # Release the terminal.
 #
-term_unlock()
-{
-    TERM_LOCK=0
-}
+#term_unlock()
+#{
+#    TERM_LOCK=0
+#}
 
 #
 # Print a complete line atomically.
 #
 term_print()
 {
-    term_lock
+#    term_lock
     printf "%s\n" "$1"
 
     if (( LOGGING ))
@@ -290,7 +290,7 @@ term_print()
         printf "%s\n" "$1" >> "$LOGFILE"
     fi
 
-    term_unlock
+#    term_unlock
 }
 
 #
@@ -361,15 +361,15 @@ open_uart() {
 # Pause/resume the background receiver.
 # Last modified: 202660804/FJ
 #
-pause_receiver()
-{
-    [[ -n "$RX_PID" ]] && kill -STOP "$RX_PID" 2>/dev/null
-}
+#pause_receiver()
+#{
+#    [[ -n "$RX_PID" ]] && kill -STOP "$RX_PID" 2>/dev/null
+#}
 
-resume_receiver()
-{
-    [[ -n "$RX_PID" ]] && kill -CONT "$RX_PID" 2>/dev/null
-}
+#resume_receiver()
+#{
+#    [[ -n "$RX_PID" ]] && kill -CONT "$RX_PID" 2>/dev/null
+#}
 
 #
 # Restore the original terminal state after finishing.
