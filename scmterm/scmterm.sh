@@ -112,6 +112,11 @@ LOGDIR=""
 LOGFILE=""
 
 #
+# Terminal output lock.
+#
+TERM_LOCK=0
+
+#
 # Usage message, direction on options.
 #
 usage() {
@@ -246,6 +251,49 @@ scmterm_banner() {
 }
 
 #
+# Acquire exclusive access to the terminal. This in order to avoid previously
+# (as of 20260804) interlaced sent and received text, say during transmission
+# of Intel HEX files in command mode (Ctrl-T), like:
+#
+#      Rea----------------------------------------
+#      Transfer complete...
+#      cmd> dy
+#
+term_lock()
+{
+    while (( TERM_LOCK ))
+    do
+        sleep 0.01
+    done
+
+    TERM_LOCK=1
+}
+
+#
+# Release the terminal.
+#
+term_unlock()
+{
+    TERM_LOCK=0
+}
+
+#
+# Print a complete line atomically.
+#
+term_print()
+{
+    term_lock
+    printf "%s\n" "$1"
+
+    if (( LOGGING ))
+    then
+        printf "%s\n" "$1" >> "$LOGFILE"
+    fi
+
+    term_unlock
+}
+
+#
 # Configuration of the serial interface
 #
 configure_serial_interface() {
@@ -298,52 +346,72 @@ save_terminal_state () {
 }
 
 #
-# Restore the original terminal state after finishing.
-#
-cleanup() {
-    stty "$OLDTTY"
-    kill "$RX_PID" 2>/dev/null
-    wait "$RX_PID" 2>/dev/null
-    exec 3>&-
-    exec 4<&-
-    echo ""
-}
-
-#
-# Open UART for communication and enter "raw" keyboard mode. The '-opost'
-# option disables Linux output processing explicitly, avoiding the kernel
-# doing additional translations behind the curtains.
+# Open UART for bidirectional communication and enter "raw" keyboard mode.
+# The '-opost' option would disable Linux output processing explicitly,
+# avoiding the kernel doing additional translations behind the curtains.
+# Last modified: 202660804/FJ
 #
 open_uart() {
     exec 3> "$DEVICE"
     exec 4< "$DEVICE"
-    stty -icanon -echo onlcr min 1 time 0
+    stty -icanon -echo min 1 time 0
 }
 
 #
-# Open the serial receiver of text from the SCM interface.
+# Pause/resume the background receiver.
+# Last modified: 202660804/FJ
+#
+pause_receiver()
+{
+    [[ -n "$RX_PID" ]] && kill -STOP "$RX_PID" 2>/dev/null
+}
+
+resume_receiver()
+{
+    [[ -n "$RX_PID" ]] && kill -CONT "$RX_PID" 2>/dev/null
+}
+
+#
+# Restore the original terminal state after finishing.
+# Last modified: 202660804/FJ
+#
+cleanup()
+{
+    #
+    # Restore keyboard.
+    #
+    stty "$OLDTTY"
+
+    #
+    # Stop receiver.
+    #
+    if [[ -n "$RX_PID" ]]
+    then
+        kill "$RX_PID" 2>/dev/null
+        wait "$RX_PID" 2>/dev/null
+    fi
+
+    #
+    # Close UART.
+    #
+    exec 3>&-
+
+    printf "\nLeaving SCMTERM.\n"
+}
+
+#
+# Open the serial (UART) receiver of text from the SCM interface.
+# Last modified: 202660806/FJ [Radically simplifying the receiver.]
 #
 receiver() {
-    while true
-    do
-        BYTE=$(dd bs=1 count=1 <&4 2>/dev/null)
-        case "$BYTE" in
-            $'\r')
-                printf '\r\n'
-                log_write $'\r\n'
-		;;
-            *)
-                printf "%s" "$BYTE"
-                log_write "$BYTE"
-		;;
-        esac
-    done
+    cat <&4
 }
 
 #
-# Intel HEX code sender. For details on the Intel HEX code format, see
-# https://en.wikipedia.org/wiki/Intel_HEX or
-# https://developer.arm.com/documentation/ka003292/1-0/
+# Routine for sending Intel HEX code to the SCM receiver, essentially being
+# machine code formatted as ASCII. For details on the Intel HEX code format,
+# see the Wikipedia article at https://en.wikipedia.org/wiki/Intel_HEX or
+# developer details at https://developer.arm.com/documentation/ka003292/1-0/
 #
 send_hex() {
     local FILE="$1"
@@ -355,12 +423,12 @@ send_hex() {
     fi
     if [[ ! -f "$FILE" ]]
     then
-        echo "File not found: $FILE"
+        echo "Error: Intel HEX file '$FILE' not found!"
         return
     fi
-    echo
-    echo "Sending $FILE"
-    echo
+    term_print ""
+    term_print "Sending Intel HEX file $FILE"
+    term_print ""
     while IFS= read -r LINE
     do
         #
@@ -369,9 +437,9 @@ send_hex() {
         printf "%s\r" "$LINE" >&3
         sleep "$HEX_DELAY"
     done < "$FILE"
-    echo "----------------------------------------"
-    echo "Transfer complete of hex file $FILE"
-    echo "----------------------------------------"
+    term_print "----------------------------------------------------"
+    term_print "Transfer complete of Intel HEX file '$FILE'"
+    term_print "----------------------------------------------------"
 }
 
 #
@@ -395,7 +463,7 @@ scmterm_info() {
     fi
 
     echo "----------------------------------------"
-    echo "Available commands in command mode:"
+    echo "Available commands in command mode (Ctrl-T):"
     echo "  send <file.hex>   Send Intel HEX file"
     echo "  info              Display SCMTERM configuration"
     echo "  quit              Exit command mode and return to SCM."
