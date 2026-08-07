@@ -143,6 +143,18 @@ analyse_hex() {
     local TYPE
     local ADDR
 
+    if [[ -z "$FILE" ]]
+    then
+        term_print "Usage: check <file.hex>"
+        return
+    fi
+
+    if [[ ! -f "$FILE" ]]
+    then
+        term_print "Error: Intel HEX file '$FILE' not found!"
+        return
+    fi
+
     #
     # Reset statistics.
     #
@@ -197,9 +209,9 @@ analyse_hex() {
                 ;;
         esac
     done < "$FILE"
-    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------"
     printf "%s\n" "Intel HEX file analysis"
-    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------"
     printf "File               : %s\n" "$FILE"
     printf "Total records      : %d\n" "$HEX_RECORDS"
     printf "Data records       : %d\n" "$HEX_DATA_RECORDS"
@@ -222,7 +234,7 @@ analyse_hex() {
         printf "Lowest address     : %04XH\n" "$HEX_LOWEST_ADDRESS"
         printf "Highest address    : %04XH\n" "$HEX_HIGHEST_ADDRESS"
     fi
-    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------"
 }
 
 #
@@ -493,12 +505,12 @@ log_receiver() {
 #         │
 #         ▼
 #        tee
-#        ├──────────────► Terminal
-#        │
-#        └──────────────► log_receiver()
-#                              │
-#                              ▼
-#                          logfile
+#         ├──────────────► Terminal
+#         │
+#         └──────────────► log_receiver()
+#                               │
+#                               ▼
+#                           logfile
 #
 # Last modified: 202660807/FJ [Radically simplifying the receiver.]
 #
@@ -599,19 +611,32 @@ send_hex() {
     sleep 0.20
     kill -STOP "$RX_PID"
     printf "%s\n" ""
-    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------"
     printf "%s\n" "Transfer of $FILE completed successfully."
-    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------"
     kill -CONT "$RX_PID"
+}
+
+#
+# Display the valid commands in SCMTERM command mode.
+#
+display_valid_commands() {
+    printf "%s\n" "----------------------------------------------------------"
+    printf "%s\n" "Valid commands within command mode:"
+    printf "%s\n" "    send <file.hex>   Transfer Intel HEX file to device."
+    printf "%s\n" "    check <file.hex>  Check contents of Intel HEX file."
+    printf "%s\n" "    info              Display communication settings."
+    printf "%s\n" "    quit              Exit command mode and return to SCM."
+    printf "%s\n" "----------------------------------------------------------"
 }
 
 #
 # Display the communication parameters of the SCMTERM.
 #
 scmterm_info() {
-    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------"
     printf "%s\n" "SCMTERM communication settings"
-    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------"
     printf "%s\n" "Device       : $DEVICE"
     printf "%s\n" "Baud rate    : $BAUD"
     printf "%s\n" "Data bits    : 8"
@@ -623,11 +648,7 @@ scmterm_info() {
     else
         printf "%s\n" "Flow control : disabled"
     fi
-    printf "%s\n" "----------------------------------------------------"
-    printf "%s\n" "Available SCMTERM commands in command mode (Ctrl-T):"
-    printf "%s\n" "  send <file.hex>   Send Intel HEX file."
-    printf "%s\n" "  info              Display SCMTERM configuration."
-    printf "%s\n" "  quit              Exit command mode and return to SCM."
+    display_valid_commands
 }
 
 #
@@ -649,15 +670,9 @@ command_mode() {
     # Stop the "raw" keyboard mode.
     #
     stty echo icanon
-    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------"
     printf "%s\n" "Entering SCMTERM terminal command mode"
-    printf "%s\n" "----------------------------------------------------"
-    printf "%s\n" "Valid commands within command mode:"
-    printf "%s\n" "    send <file.hex>   Transfer Intel HEX file to device."
-    printf "%s\n" "    check <file.hex>  Check contents of Intel HEX file."
-    printf "%s\n" "    info              Display communication settings."
-    printf "%s\n" "    quit              Exit command mode and return to SCM."
-    printf "%s\n" "----------------------------------------------------"
+    display_valid_commands
     while true
     do
         printf "scmterm> "
@@ -686,6 +701,7 @@ command_mode() {
                 ;;
             *)
                 echo "Unknown command: $CMD"
+		display_valid_commands
 		;;
         esac
     done
