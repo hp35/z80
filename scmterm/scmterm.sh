@@ -61,9 +61,12 @@
 #
 #     Command mode:
 #         send <file.hex>
-#             Send Intel HEX file to SCM.
+#             Transfer Intel HEX file to SCM.
+#         check <file.hex>
+#             Check the contents of Intel HEX file, without
+#             attempting to transfer it.
 #         info
-#             Display the SCMTERM communication settings."
+#             Display the SCMTERM communication settings.
 #         quit
 #             Return to SCM terminal mode.
 #

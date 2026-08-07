@@ -137,7 +137,10 @@ SCMTERM operation:
 
 Command mode:
          send <file.hex>
-             Send Intel HEX file to SCM.
+             Transfer Intel HEX file to SCM.
+         check <file.hex>
+             Check the contents of Intel HEX file, without
+             attempting to transfer it.
          info
              Display the SCMTERM communication settings."
          quit
@@ -212,11 +215,11 @@ Valid commands within command mode:
     info             Display the SCMTERM communication settings.
     quit             Exit command mode and return to SCM.
 
-cmd> 
+scmterm> 
 ```
 5. Check out the settings of `SCMTERM`:
 ```
-cmd> info
+scmterm> info
 ----------------------------------------------------
 SCMTERM communication settings
 ----------------------------------------------------
@@ -231,12 +234,12 @@ Available SCMTERM commands in command mode (Ctrl-T):
   send <file.hex>   Send Intel HEX file.
   info              Display SCMTERM configuration.
   quit              Exit command mode and return to SCM.
-cmd> 
+scmterm> 
 ```
 6. Transfer the file `life.hex` over to the RAM of the RC2014 (the primary
 memory of the Z80), by:
 ```
-cmd> send life.hex
+scmterm> send life.hex
 ----------------------------------------------------
 Intel HEX file analysis
 ----------------------------------------------------
@@ -254,12 +257,12 @@ Ready
 ----------------------------------------------------
 Transfer of life.hex completed successfully.
 ----------------------------------------------------
-cmd> 
+scmterm> 
 ```
 7. Exit the `SCMTERM` command mode, to enter the communication mode with SCM
 again:
 ```
-cmd> quit
+scmterm> quit
 ----------------------------------------
 Leaving command mode of the SCMTERM terminal
 ----------------------------------------
