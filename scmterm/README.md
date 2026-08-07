@@ -161,7 +161,11 @@ Common ports for UART interfaces are `/dev/ttyUSB0`, `/dev/ttyACM0` and
 ## Example of usage
 Below follows a typical session in which we use `SCMTERM` to transfer an Intel
 HEX file `life.hex` over to a connected RC2014 single-board computer running
-SCM.
+SCM. Notice that if either (i) a subdirectory `./log/` is present in the
+current directory from which `SCMTERM` is launched, or if (ii) the command
+line option `-l <logdir>` is present at startup, then `SCMTERM` will produce
+verbatim logs of the session, named using the system date and time in the
+format `scmterm-YYYYMMDD_hhmm.log`.
 
 1. Connect the RC2014 card via your UART of choice and check that the
 serial device (typically `ttyUSB0`, `ttyACM0` or `ttyACM0`) is up and running:
