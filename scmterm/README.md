@@ -1,5 +1,5 @@
 # SCMTERM - Small Computer Monitor TERMinal for RC2014 and related platforms
-<em>Fredrik Jonsson, July 26, 2026</em></br>
+<em>Fredrik Jonsson, August 7, 2026</em></br>
 Location: https://github.com/hp35/z80/tree/main/scmterm
 
 Bash script `SCMTERM` for interfacing the Small Computer Monitor (SCM) [^1]
