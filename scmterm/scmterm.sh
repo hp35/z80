@@ -14,6 +14,9 @@
 # or /dev/ttyACM1. In some sense, one may consider the present SCMTERM script
 # as being a sort-of "mini-miniterm".
 #
+# See https://github.com/hp35/z80/tree/main/scmterm for documentation and
+# details on usage and installation.
+#
 # Usage:
 #     scmterm [options]
 #
@@ -299,14 +302,19 @@ init_logging() {
     } >> "$LOGFILE"
 }
 
-log_write() {
+#
+# Define the "local logging" functions log_local() and log_local_line(),
+# which handle the logging of SCMTERM's own actions, while the receiver
+# logs SCM's own output.
+#
+log_local() {
     if [[ "$LOGGING" -eq 1 ]]
     then
         printf "%s" "$1" >> "$LOGFILE"
     fi
 }
 
-log_line() {
+log_local_line() {
     if [[ "$LOGGING" -eq 1 ]]
     then
         printf "%s\n" "$1" >> "$LOGFILE"
@@ -321,12 +329,12 @@ scmterm_banner() {
     echo "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
     echo "Logging session to $LOGFILE"
     echo "    Use 'Ctrl-T' to enter SCMTERM command mode."
-    echo "    Use 'Ctrl-X' or ']' to exit SCMTERM."
-    log_line "This is SCMTERM v.1.0."
-    log_line "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
-    log_line "Logging session to $LOGFILE"
-    log_line "    Use 'Ctrl-T' to enter SCMTERM command mode."
-    log_line "    Use 'Ctrl-X' or ']' to exit SCMTERM."
+    echo "    Use 'Ctrl-X' or 'Ctrl-]' to exit SCMTERM."
+    log_local_line "This is SCMTERM v.1.0."
+    log_local_line "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
+    log_local_line "Logging session to $LOGFILE"
+    log_local_line "    Use 'Ctrl-T' to enter SCMTERM command mode."
+    log_local_line "    Use 'Ctrl-X' or 'Ctrl-]' to exit SCMTERM."
 }
 
 #
@@ -582,9 +590,9 @@ command_mode() {
     #
     # Make sure that we log the entering of command mode (if we are logging).
     #
-    log_line "----------------------------------------"
-    log_line "Entering SCMTERM terminal command mode"
-    log_line "----------------------------------------"
+    log_local_line "----------------------------------------"
+    log_local_line "Entering SCMTERM terminal command mode"
+    log_local_line "----------------------------------------"
 
     #
     # Stop the "raw" keyboard mode.
@@ -602,7 +610,7 @@ command_mode() {
     do
         printf "cmd> "
         read -r CMD ARG
-	log_line "cmd> $CMD $ARG"
+	log_local_line "cmd> $CMD $ARG"
         case "$CMD" in
             send)
                 send_hex "$ARG"
@@ -611,9 +619,9 @@ command_mode() {
                 scmterm_info
 		;;
             quit)
-                log_line "----------------------------------------"
-                log_line "Leaving command mode of the SCMTERM terminal"
-                log_line "----------------------------------------"
+                log_local_line "----------------------------------------"
+                log_local_line "Leaving command mode of the SCMTERM terminal"
+                log_local_line "----------------------------------------"
                 echo "----------------------------------------"
                 echo "Leaving command mode of the SCMTERM terminal"
                 echo "----------------------------------------"
@@ -645,16 +653,14 @@ main_loop() {
 
         if [[ "$KEY" == $'\003' ]]
         then
-            echo
-            echo "Leaving RC2014 terminal"
+            echo "Leaving SCMTERM"
             break
         fi
 
         case "$KEY" in
 
             $'\003'|$'\030'|$'\035')
-                echo
-                echo "Leaving RC2014 terminal"
+                echo "Leaving SCMTERM by Ctrl-X or Ctrl-]"
                 break
 		;;
 
@@ -664,12 +670,12 @@ main_loop() {
 
             $'\012'|$'\015')
                 printf '\r' >&3
-                log_write $'\r'
+                log_local $'\r'
 		;;
 
             *)
                 printf '%s' "$KEY" >&3
-                log_write "$KEY"
+                log_local "$KEY"
 		;;
 
         esac
