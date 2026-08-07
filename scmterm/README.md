@@ -158,6 +158,125 @@ port is as follows.
 Common ports for UART interfaces are `/dev/ttyUSB0`, `/dev/ttyACM0` and
 `/dev/ttyACM1`.
 
+## Example of usage
+Below follows a typical session in which we use `SCMTERM` to transfer an Intel
+HEX file `life.hex` over to a connected RC2014 single-board computer running
+SCM.
+
+1. Connect the RC2014 card via your UART of choice and check that the
+serial device (typically `ttyUSB0`, `ttyACM0` or `ttyACM0`) is up and running:
+```bash
+me@mycomputer:life$ ls -al /dev/ttyUSB0 
+crw-rw---- 1 root dialout 188, 0 Aug  7 15:57 /dev/ttyUSB0
+```
+2. Launch `SCMTERM` using this device:
+```bash
+me@mycomputer:life$ scmterm -d /dev/ttyUSB0 
+This is SCMTERM v.1.0. Copyright (C) 2026 Fredrik Jonsson under GPL 3.0
+Logging session to ./log/scmterm-20260807_1607.log
+    Use 'Ctrl-T' to enter SCMTERM command mode.
+    Use 'Ctrl-X' or ']' to exit SCMTERM.
+*
+```
+3. Check out what SCM supports when it comes to commands, by typing `?` followed
+by `ENTER`:
+```bash
+*?
+Small Computer Monitor by Stephen C Cousins (www.scc.me.uk)
+Version 1.0.0 configuration R4 for Z80 based RC2014 systems
+
+Monitor commands:
+A [<address>]  = Assemble        |  D [<address>]   = Disassemble
+M [<address>]  = Memory display  |  E [<address>]   = Edit memory
+R [<name>]     = Registers/edit  |  F [<name>]      = Flags/edit
+B [<address>]  = Breakpoint      |  S [<address>]   = Single step
+I <port>       = Input from port |  O <port> <data> = Output to port
+G [<address>]  = Go to program
+BAUD <device> <rate>             |  CONSOLE <device>
+FILL <start> <end> <byte>        |  API <function> [<A>] [<DE>]
+DEVICES, DIR, HELP, RESET
+*
+```
+4. In order to make use of `SCMTERM` for transferring an Intel HEX file over
+to the RC2014 card, enter command mode by typing `Ctrl-T`:
+```bash
+*----------------------------------------
+Entering SCMTERM terminal command mode
+----------------------------------------
+Valid commands within command mode:
+    send <file.hex>  Send Intel HEX file.
+    info             Display the SCMTERM communication settings.
+    quit             Exit command mode and return to SCM.
+
+cmd> 
+```
+5. Check out the settings of `SCMTERM`:
+```bash
+cmd> info
+----------------------------------------------------
+SCMTERM communication settings
+----------------------------------------------------
+Device       : /dev/ttyUSB0
+Baud rate    : 115200
+Data bits    : 8
+Parity       : N
+Stop bits    : 1
+Flow control : disabled
+----------------------------------------------------
+Available SCMTERM commands in command mode (Ctrl-T):
+  send <file.hex>   Send Intel HEX file.
+  info              Display SCMTERM configuration.
+  quit              Exit command mode and return to SCM.
+cmd> 
+```
+6. Transfer the file `life.hex` over to the RAM of the RC2014 (the primary
+memory of the Z80), by:
+```bash
+cmd> send life.hex
+----------------------------------------------------
+Intel HEX file analysis
+----------------------------------------------------
+File               : life.hex
+Total records      : 14
+Data records       : 13
+EOF records        : 1
+Data bytes         : 197
+Lowest address     : 9000H
+Highest address    : 90C4H
+
+Uploading Intel HEX file life.hex to device ...
+
+Ready
+----------------------------------------------------
+Transfer of life.hex completed successfully.
+----------------------------------------------------
+cmd> 
+```
+7. Exit the `SCMTERM` command mode, to enter the communication mode with SCM
+again:
+```bash
+cmd> quit
+----------------------------------------
+Leaving command mode of the SCMTERM terminal
+----------------------------------------
+*
+```
+8. Execute the program, stored at address `0x9000` in the memory:
+```bash
+*G9000
+     ... ... ... ... ... ... ... ...
+     ...  [output from the Z80]  ...
+     ... ... ... ... ... ... ... ...
+```
+9. Quit the `SCMTERM` terminal and return to the Linux terminal by `Ctrl-X`
+or `Ctrl-C`:
+```bash
+*
+Leaving SCMTERM.
+
+me@mycomputer:life$ 
+```
+
 ## Installation
 Installation in a Linux/OSX/Unix machine is simple. In order to install the
 script and a symbolic link in the default location `/usr/local/bin/`, simply
