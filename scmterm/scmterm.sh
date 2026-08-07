@@ -194,6 +194,32 @@ analyse_hex() {
                 ;;
         esac
     done < "$FILE"
+    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "Intel HEX file analysis"
+    printf "%s\n" "----------------------------------------------------"
+    printf "File               : %s\n" "$FILE"
+    printf "Total records      : %d\n" "$HEX_RECORDS"
+    printf "Data records       : %d\n" "$HEX_DATA_RECORDS"
+    printf "EOF records        : %d\n" "$HEX_EOF_RECORDS"
+
+    if (( HEX_EXTSEG_RECORDS ))
+    then
+        printf "Ext. segment recs  : %d\n" "$HEX_EXTSEG_RECORDS"
+    fi
+
+    if (( HEX_EXTLIN_RECORDS ))
+    then
+        printf "Ext. linear recs   : %d\n" "$HEX_EXTLIN_RECORDS"
+    fi
+
+    printf "Data bytes         : %d\n" "$HEX_DATA_BYTES"
+
+    if (( HEX_LOWEST_ADDRESS >= 0 ))
+    then
+        printf "Lowest address     : %04XH\n" "$HEX_LOWEST_ADDRESS"
+        printf "Highest address    : %04XH\n" "$HEX_HIGHEST_ADDRESS"
+    fi
+    printf "%s\n" "----------------------------------------------------"
 }
 
 #
@@ -488,32 +514,23 @@ receiver() {
 progress_bar() {
     local CURRENT=$1
     local TOTAL=$2
-
     local WIDTH=50
     local FILLED
     local PERCENT
-
     (( TOTAL == 0 )) && TOTAL=1
-
     FILLED=$(( CURRENT * WIDTH / TOTAL ))
     PERCENT=$(( CURRENT * 100 / TOTAL ))
-
     printf "\r["
-
     for ((i=0; i<FILLED; i++))
     do
         printf "="
     done
-
     printf ">"
-
     for ((i=FILLED+1; i<WIDTH; i++))
     do
         printf " "
     done
-
     printf "] %3d%%" "$PERCENT"
-
     if (( CURRENT == TOTAL ))
     then
         printf "\n"
@@ -546,39 +563,12 @@ send_hex() {
         return
     fi
 
+    kill -STOP "$RX_PID"
+
     #
     # Scan the file prior to submission to SCM/Z80.
     #
     analyse_hex "$FILE"
-
-    kill -STOP "$RX_PID"
-
-    printf "%s\n" "----------------------------------------------------"
-    printf "%s\n" "Intel HEX file analysis"
-    printf "%s\n" "----------------------------------------------------"
-    printf "File               : %s\n" "$FILE"
-    printf "Total records      : %d\n" "$HEX_RECORDS"
-    printf "Data records       : %d\n" "$HEX_DATA_RECORDS"
-    printf "EOF records        : %d\n" "$HEX_EOF_RECORDS"
-
-    if (( HEX_EXTSEG_RECORDS ))
-    then
-        printf "Ext. segment recs  : %d\n" "$HEX_EXTSEG_RECORDS"
-    fi
-
-    if (( HEX_EXTLIN_RECORDS ))
-    then
-        printf "Ext. linear recs   : %d\n" "$HEX_EXTLIN_RECORDS"
-    fi
-
-    printf "Data bytes         : %d\n" "$HEX_DATA_BYTES"
-
-    if (( HEX_LOWEST_ADDRESS >= 0 ))
-    then
-        printf "Lowest address     : %04XH\n" "$HEX_LOWEST_ADDRESS"
-        printf "Highest address    : %04XH\n" "$HEX_HIGHEST_ADDRESS"
-    fi
-
     printf "\nUploading Intel HEX file $FILE to device ...\n\n"
 
     kill -CONT "$RX_PID"
@@ -656,22 +646,26 @@ command_mode() {
     # Stop the "raw" keyboard mode.
     #
     stty echo icanon
-    echo "----------------------------------------"
-    echo "Entering SCMTERM terminal command mode"
-    echo "----------------------------------------"
-    echo "Valid commands within command mode:"
-    echo "    send <file.hex>  Send Intel HEX file."
-    echo "    info             Display the SCMTERM communication settings."
-    echo "    quit             Exit command mode and return to SCM."
-    echo ""
+    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "Entering SCMTERM terminal command mode"
+    printf "%s\n" "----------------------------------------------------"
+    printf "%s\n" "Valid commands within command mode:"
+    printf "%s\n" "    send <file.hex>   Transfer Intel HEX file to device."
+    printf "%s\n" "    check <file.hex>  Check contents of Intel HEX file."
+    printf "%s\n" "    info              Display communication settings."
+    printf "%s\n" "    quit              Exit command mode and return to SCM."
+    printf "%s\n" "----------------------------------------------------"
     while true
     do
-        printf "cmd> "
+        printf "scmterm> "
         read -r CMD ARG
-	log_local_line "cmd> $CMD $ARG"
+	log_local_line "scmterm> $CMD $ARG"
         case "$CMD" in
             send)
                 send_hex "$ARG"
+		;;
+	    check)
+                analyse_hex "$ARG"
 		;;
             info)
                 scmterm_info
