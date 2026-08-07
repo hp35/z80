@@ -265,7 +265,11 @@ Leaving command mode of the SCMTERM terminal
 ----------------------------------------
 *
 ```
-8. Execute the program, stored at address `0x9000` in the memory:
+8. Having left the command mode of `SCMTERM`, with the Intel HEX file `life.hex`
+successfully transferred to the memory accessed by the Z80 at the RC2014
+computer, now use the "regular" communication mode of `SCMTERM` to instruct
+`SCM` to initiate execution of the program, which is stored at address `0x9000`
+in the memory:
 ```
 *G9000
      ... ... ... ... ... ... ... ...
