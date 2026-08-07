@@ -319,11 +319,13 @@ log_line() {
 scmterm_banner() {
     echo -n "This is SCMTERM v.1.0. "
     echo "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
-    echo "    Use 'Ctrl-T' to enter command mode."
+    echo "Logging session to $LOGFILE"
+    echo "    Use 'Ctrl-T' to enter SCMTERM command mode."
     echo "    Use 'Ctrl-X' or ']' to exit SCMTERM."
     log_line "This is SCMTERM v.1.0."
     log_line "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
-    log_line "    Use 'Ctrl-T' to enter command mode."
+    log_line "Logging session to $LOGFILE"
+    log_line "    Use 'Ctrl-T' to enter SCMTERM command mode."
     log_line "    Use 'Ctrl-X' or ']' to exit SCMTERM."
 }
 
@@ -431,11 +433,32 @@ cleanup() {
 }
 
 #
+# Append received UART data to the SCMTERM log.
+#
+log_receiver() {
+    if (( LOGGING ))
+    then
+        cat >> "$LOGFILE"
+    else
+        cat >/dev/null
+    fi
+}
+
+#
 # Open the serial (UART) receiver of text from the SCM interface.
 # Last modified: 202660806/FJ [Radically simplifying the receiver.]
 #
+#receiver() {
+#    cat <&4
+#}
+
 receiver() {
-    cat <&4
+    if (( LOGGING ))
+    then
+        tee >(log_receiver) <&4
+    else
+        cat <&4
+    fi
 }
 
 #
