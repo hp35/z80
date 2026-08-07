@@ -165,12 +165,12 @@ SCM.
 
 1. Connect the RC2014 card via your UART of choice and check that the
 serial device (typically `ttyUSB0`, `ttyACM0` or `ttyACM0`) is up and running:
-```bash
+```
 me@mycomputer:life$ ls -al /dev/ttyUSB0 
 crw-rw---- 1 root dialout 188, 0 Aug  7 15:57 /dev/ttyUSB0
 ```
 2. Launch `SCMTERM` using this device:
-```bash
+```
 me@mycomputer:life$ scmterm -d /dev/ttyUSB0 
 This is SCMTERM v.1.0. Copyright (C) 2026 Fredrik Jonsson under GPL 3.0
 Logging session to ./log/scmterm-20260807_1607.log
@@ -180,7 +180,7 @@ Logging session to ./log/scmterm-20260807_1607.log
 ```
 3. Check out what SCM supports when it comes to commands, by typing `?` followed
 by `ENTER`:
-```bash
+```
 *?
 Small Computer Monitor by Stephen C Cousins (www.scc.me.uk)
 Version 1.0.0 configuration R4 for Z80 based RC2014 systems
@@ -199,7 +199,7 @@ DEVICES, DIR, HELP, RESET
 ```
 4. In order to make use of `SCMTERM` for transferring an Intel HEX file over
 to the RC2014 card, enter command mode by typing `Ctrl-T`:
-```bash
+```
 *----------------------------------------
 Entering SCMTERM terminal command mode
 ----------------------------------------
@@ -211,7 +211,7 @@ Valid commands within command mode:
 cmd> 
 ```
 5. Check out the settings of `SCMTERM`:
-```bash
+```
 cmd> info
 ----------------------------------------------------
 SCMTERM communication settings
@@ -231,7 +231,7 @@ cmd>
 ```
 6. Transfer the file `life.hex` over to the RAM of the RC2014 (the primary
 memory of the Z80), by:
-```bash
+```
 cmd> send life.hex
 ----------------------------------------------------
 Intel HEX file analysis
@@ -254,7 +254,7 @@ cmd>
 ```
 7. Exit the `SCMTERM` command mode, to enter the communication mode with SCM
 again:
-```bash
+```
 cmd> quit
 ----------------------------------------
 Leaving command mode of the SCMTERM terminal
@@ -262,7 +262,7 @@ Leaving command mode of the SCMTERM terminal
 *
 ```
 8. Execute the program, stored at address `0x9000` in the memory:
-```bash
+```
 *G9000
      ... ... ... ... ... ... ... ...
      ...  [output from the Z80]  ...
@@ -270,7 +270,7 @@ Leaving command mode of the SCMTERM terminal
 ```
 9. Quit the `SCMTERM` terminal and return to the Linux terminal by `Ctrl-X`
 or `Ctrl-C`:
-```bash
+```
 *
 Leaving SCMTERM.
 
