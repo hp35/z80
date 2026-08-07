@@ -307,15 +307,35 @@ init_logging() {
 # which handle the logging of SCMTERM's own actions, while the receiver
 # logs SCM's own output.
 #
-log_local() {
-    if [[ "$LOGGING" -eq 1 ]]
+log_local()
+{
+    if (( LOGGING ))
     then
         printf "%s" "$1" >> "$LOGFILE"
     fi
 }
 
-log_local_line() {
-    if [[ "$LOGGING" -eq 1 ]]
+#log_local() {
+#    if [[ "$LOGGING" -eq 1 ]]
+#    then
+#        printf "%s" "$1" >> "$LOGFILE"
+#    fi
+#}
+
+
+#log_local_line() {
+#    if [[ "$LOGGING" -eq 1 ]]
+#    then
+#        printf "%s\n" "$1" >> "$LOGFILE"
+#    fi
+#}
+
+#
+# Write one complete SCMTERM log line.
+#
+log_local_line()
+{
+    if (( LOGGING ))
     then
         printf "%s\n" "$1" >> "$LOGFILE"
     fi
@@ -441,24 +461,58 @@ cleanup() {
 }
 
 #
-# Append received UART data to the SCMTERM log.
+# Append received UART data to the SCMTERM log. This routine is logging
+# everything received from SCM; however notice that it does not write
+# anything to the terminal.
 #
 log_receiver() {
-    if (( LOGGING ))
-    then
-        cat >> "$LOGFILE"
-    else
-        cat >/dev/null
-    fi
+    while IFS= read -r -n1 CHAR
+    do
+        printf "%s" "$CHAR" >> "$LOGFILE"
+    done
 }
 
+
+#log_receiver() {
+#    if (( LOGGING ))
+#    then
+#        cat >> "$LOGFILE"
+#    else
+#        cat >/dev/null
+#    fi
+#}
+
 #
-# Open the serial (UART) receiver of text from the SCM interface.
-# Last modified: 202660806/FJ [Radically simplifying the receiver.]
+# Open the serial (UART) receiver of text from the SCM interface. In the
+# present scheme, the UART stream, without any parsing, buffering or
+# interference with the displayed output, becomes
+#
+#       UART
+#         │
+#         ▼
+#        tee
+#        ├──────────────► Terminal
+#        │
+#        └──────────────► log_receiver()
+#                              │
+#                              ▼
+#                          logfile
+#
+# Last modified: 202660807/FJ [Radically simplifying the receiver.]
 #
 #receiver() {
 #    cat <&4
 #}
+
+#receiver() {
+#    if (( LOGGING ))
+#    then
+#        tee >(log_receiver) <&4
+#    else
+#        cat <&4
+#    fi
+#}
+
 
 receiver() {
     if (( LOGGING ))
@@ -466,6 +520,44 @@ receiver() {
         tee >(log_receiver) <&4
     else
         cat <&4
+    fi
+}
+
+#
+# Display a linear progress bar for HEX file transfer, from 0% to 100%.
+#
+progress_bar() {
+    local CURRENT=$1
+    local TOTAL=$2
+
+    local WIDTH=50
+    local FILLED
+    local PERCENT
+
+    (( TOTAL == 0 )) && TOTAL=1
+
+    FILLED=$(( CURRENT * WIDTH / TOTAL ))
+    PERCENT=$(( CURRENT * 100 / TOTAL ))
+
+    printf "\r["
+
+    for ((i=0; i<FILLED; i++))
+    do
+        printf "="
+    done
+
+    printf ">"
+
+    for ((i=FILLED+1; i<WIDTH; i++))
+    do
+        printf " "
+    done
+
+    printf "] %3d%%" "$PERCENT"
+
+    if (( CURRENT == TOTAL ))
+    then
+        printf "\n"
     fi
 }
 
@@ -533,11 +625,19 @@ send_hex() {
     kill -CONT "$RX_PID"
 
     #
-    # Send the file.
+    # Transfer the Intel HEX file.
     #
+    CURRENT=0
+
     while IFS= read -r LINE
     do
         printf "%s\r" "$LINE" >&3
+        ((CURRENT++))
+        progress_bar "$CURRENT" "$HEX_RECORDS"
+        if (( LOGGING ))
+        then
+            printf ">> %s\n" "$LINE" >> "$LOGFILE"
+        fi
         sleep "$HEX_DELAY"
     done < "$FILE"
 
@@ -545,7 +645,6 @@ send_hex() {
     # Give SCM a chance to respond.
     #
     sleep 0.20
-
     kill -STOP "$RX_PID"
     printf "%s\n" ""
     printf "%s\n" "----------------------------------------------------"
