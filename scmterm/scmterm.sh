@@ -307,34 +307,17 @@ init_logging() {
 # which handle the logging of SCMTERM's own actions, while the receiver
 # logs SCM's own output.
 #
-log_local()
-{
+log_local() {
     if (( LOGGING ))
     then
         printf "%s" "$1" >> "$LOGFILE"
     fi
 }
 
-#log_local() {
-#    if [[ "$LOGGING" -eq 1 ]]
-#    then
-#        printf "%s" "$1" >> "$LOGFILE"
-#    fi
-#}
-
-
-#log_local_line() {
-#    if [[ "$LOGGING" -eq 1 ]]
-#    then
-#        printf "%s\n" "$1" >> "$LOGFILE"
-#    fi
-#}
-
 #
 # Write one complete SCMTERM log line.
 #
-log_local_line()
-{
+log_local_line() {
     if (( LOGGING ))
     then
         printf "%s\n" "$1" >> "$LOGFILE"
@@ -472,16 +455,6 @@ log_receiver() {
     done
 }
 
-
-#log_receiver() {
-#    if (( LOGGING ))
-#    then
-#        cat >> "$LOGFILE"
-#    else
-#        cat >/dev/null
-#    fi
-#}
-
 #
 # Open the serial (UART) receiver of text from the SCM interface. In the
 # present scheme, the UART stream, without any parsing, buffering or
@@ -500,20 +473,6 @@ log_receiver() {
 #
 # Last modified: 202660807/FJ [Radically simplifying the receiver.]
 #
-#receiver() {
-#    cat <&4
-#}
-
-#receiver() {
-#    if (( LOGGING ))
-#    then
-#        tee >(log_receiver) <&4
-#    else
-#        cat <&4
-#    fi
-#}
-
-
 receiver() {
     if (( LOGGING ))
     then
