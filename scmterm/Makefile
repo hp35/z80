@@ -33,4 +33,5 @@ install:
 	@echo "Successfully installed the script at "$(TARGET)" as $$USER"
 
 clean:
-	-rm -Rf *~ ./log/*.log
+	-rm -Rf *~
+	make -ik clean -C ./log/
