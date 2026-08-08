@@ -152,6 +152,9 @@ ll() {
             "$CMDMODE")
                 PREFIX="## "
 	        ;;
+            "")
+                PREFIX=""
+	        ;;
             *)
                 echo "Invalid mode: $LOGMODE"
                 exit 1
@@ -242,13 +245,6 @@ analyse_hex() {
     ll "----------------------------------------------------------"
     ll "Intel HEX file analysis"
     ll "----------------------------------------------------------"
-#    printf "%s\n" "----------------------------------------------------------"
-#    printf "%s\n" "Intel HEX file analysis"
-#    printf "%s\n" "----------------------------------------------------------"
-#    ll "File               : %s\n" "$FILE"
-#    ll "Total records      : %d\n" "$HEX_RECORDS"
-#    ll "Data records       : %d\n" "$HEX_DATA_RECORDS"
-#    ll "EOF records        : %d\n" "$HEX_EOF_RECORDS"
     ll "File               : $FILE"
     ll "Total records      : $HEX_RECORDS"
     ll "Data records       : $HEX_DATA_RECORDS"
@@ -344,6 +340,7 @@ init_logging() {
     #
     # Explicit directory supplied
     #
+    LOGMODE=""
     if [[ -n "$LOGDIR" ]]
     then
 
@@ -371,21 +368,18 @@ init_logging() {
         exit 1
     fi
     LOGGING=1
-    {
-        echo "=============================================="
-        echo "SCMTERM session started"
-        echo "Date: $(date)"
-        echo "Device: $DEVICE"
-        echo "Serial: ${BAUD}-8-${PARITY}-${STOPBITS}"
-        echo "=============================================="
-        echo
-    } >> "$LOGFILE"
+    ll "=========================================================="
+    ll "SCMTERM session started"
+    ll "Date: $(date)"
+    ll "Device: $DEVICE"
+    ll "Serial: ${BAUD}-8-${PARITY}-${STOPBITS}"
+    ll "Logging session to $LOGFILE"
+    ll "=========================================================="
 }
 
 #
-# Define the "local logging" functions log_local() and log_local_line(),
-# which handle the logging of SCMTERM's own actions, while the receiver
-# logs SCM's own output.
+# Define the "local logging" function log_local() which handles the logging
+# of SCMTERM's own actions, while the receiver logs SCM's own output.
 #
 log_local() {
     if (( LOGGING ))
@@ -395,24 +389,9 @@ log_local() {
 }
 
 #
-# Write one complete SCMTERM log line.
-#
-log_local_line() {
-    if (( LOGGING ))
-    then
-        printf "%s\n" "$1" >> "$LOGFILE"
-    fi
-}
-
-#
 # Startup banner of the SCMTERM script.
 #
 scmterm_banner() {
-    echo -n "This is SCMTERM v.1.0. "
-    echo "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
-    echo "Logging session to $LOGFILE"
-    echo "    Use 'Ctrl-T' to enter SCMTERM command mode."
-    echo "    Use 'Ctrl-X' or 'Ctrl-]' to exit SCMTERM."
     ll "This is SCMTERM v.1.0."
     ll "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
     ll "Logging session to $LOGFILE"
@@ -670,19 +649,19 @@ display_valid_commands() {
 # Display the communication parameters of the SCMTERM.
 #
 scmterm_info() {
-    printf "%s\n" "----------------------------------------------------------"
-    printf "%s\n" "SCMTERM communication settings"
-    printf "%s\n" "----------------------------------------------------------"
-    printf "%s\n" "Device       : $DEVICE"
-    printf "%s\n" "Baud rate    : $BAUD"
-    printf "%s\n" "Data bits    : 8"
-    printf "%s\n" "Parity       : $PARITY"
-    printf "%s\n" "Stop bits    : $STOPBITS"
+    ll "----------------------------------------------------------"
+    ll "SCMTERM communication settings"
+    ll "----------------------------------------------------------"
+    ll "Device       : $DEVICE"
+    ll "Baud rate    : $BAUD"
+    ll "Data bits    : 8"
+    ll "Parity       : $PARITY"
+    ll "Stop bits    : $STOPBITS"
     if [[ "$FLOWCONTROL" -eq 1 ]]
     then
-        printf "%s\n" "Flow control : RTS/CTS enabled"
+        ll "Flow control : RTS/CTS enabled"
     else
-        printf "%s\n" "Flow control : disabled"
+        ll "Flow control : disabled"
     fi
     display_valid_commands
 }
@@ -695,13 +674,13 @@ command_mode() {
     local CMD
     local ARG
     LOGMODE="$CMDMODE"
-    
+
     #
     # Make sure that we log the entering of command mode (if we are logging).
     #
-    ll "----------------------------------------"
+    ll "----------------------------------------------------------"
     ll "Entering SCMTERM terminal command mode"
-    ll "----------------------------------------"
+    ll "----------------------------------------------------------"
 
     #
     # Stop the "raw" keyboard mode.
@@ -734,9 +713,10 @@ command_mode() {
                 scmterm_info
 		;;
             quit)
-                ll "----------------------------------------"
+                ll "----------------------------------------------------------"
                 ll "Leaving command mode of the SCMTERM terminal"
-                ll "----------------------------------------"
+                ll "----------------------------------------------------------"
+                LOGMODE="$COMMODE"
                 break
 		;;
             "")
@@ -759,6 +739,7 @@ command_mode() {
 # Enter the main keyboard loop of SCMTERM.
 #
 main_loop() {
+    LOGMODE="$COMMODE"
     scmterm_banner
     while true
     do
