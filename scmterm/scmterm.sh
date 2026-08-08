@@ -113,9 +113,12 @@ HEX_DELAY=0.02
 #
 # Parameters for logging of the SCMTERM session.
 #
+COMMODE="communicationmode"
+CMDMODE="commandmode"
 LOGGING=0
 LOGDIR=""
 LOGFILE=""
+LOGMODE=$COMMODE
 
 #
 # Intel HEX file information to be extracted during upload to SCM/Z80.
@@ -133,6 +136,32 @@ HEX_LOWEST_ADDRESS=-1
 HEX_HIGHEST_ADDRESS=0
 
 #
+# Display and log a single line of text, with leading characters depending
+# on whether SCMTERM is in communication mode or command mode.
+#
+ll() {
+    local LINE="$1"
+    printf "%s\n" "$LINE"
+    if (( LOGGING ))
+    then
+        local PREFIX=""
+        case "$LOGMODE" in
+            "$COMMODE")
+                PREFIX="<< "
+	        ;;
+            "$CMDMODE")
+                PREFIX="## "
+	        ;;
+            *)
+                echo "Invalid mode: $LOGMODE"
+                exit 1
+	        ;;
+        esac
+        printf "%s%s\n" "$PREFIX" "$LINE" >> "$LOGFILE"
+    fi
+}
+
+#
 # Analyse an Intel HEX file for inherent information before upload to SCM/Z80.
 # Last modified: 202660806/FJ
 #
@@ -142,16 +171,17 @@ analyse_hex() {
     local LEN
     local TYPE
     local ADDR
+    local TMPLINE
 
     if [[ -z "$FILE" ]]
     then
-        term_print "Usage: check <file.hex>"
+        ll "Usage: check <file.hex>"
         return
     fi
 
     if [[ ! -f "$FILE" ]]
     then
-        term_print "Error: Intel HEX file '$FILE' not found!"
+        ll "Error: Intel HEX file '$FILE' not found!"
         return
     fi
 
@@ -209,32 +239,41 @@ analyse_hex() {
                 ;;
         esac
     done < "$FILE"
-    printf "%s\n" "----------------------------------------------------------"
-    printf "%s\n" "Intel HEX file analysis"
-    printf "%s\n" "----------------------------------------------------------"
-    printf "File               : %s\n" "$FILE"
-    printf "Total records      : %d\n" "$HEX_RECORDS"
-    printf "Data records       : %d\n" "$HEX_DATA_RECORDS"
-    printf "EOF records        : %d\n" "$HEX_EOF_RECORDS"
+    ll "----------------------------------------------------------"
+    ll "Intel HEX file analysis"
+    ll "----------------------------------------------------------"
+#    printf "%s\n" "----------------------------------------------------------"
+#    printf "%s\n" "Intel HEX file analysis"
+#    printf "%s\n" "----------------------------------------------------------"
+#    ll "File               : %s\n" "$FILE"
+#    ll "Total records      : %d\n" "$HEX_RECORDS"
+#    ll "Data records       : %d\n" "$HEX_DATA_RECORDS"
+#    ll "EOF records        : %d\n" "$HEX_EOF_RECORDS"
+    ll "File               : $FILE"
+    ll "Total records      : $HEX_RECORDS"
+    ll "Data records       : $HEX_DATA_RECORDS"
+    ll "EOF records        : $HEX_EOF_RECORDS"
 
     if (( HEX_EXTSEG_RECORDS ))
     then
-        printf "Ext. segment recs  : %d\n" "$HEX_EXTSEG_RECORDS"
+        ll "Ext. segment recs  : $HEX_EXTSEG_RECORDS"
     fi
 
     if (( HEX_EXTLIN_RECORDS ))
     then
-        printf "Ext. linear recs   : %d\n" "$HEX_EXTLIN_RECORDS"
+        ll "Ext. linear recs   : $HEX_EXTLIN_RECORDS"
     fi
 
-    printf "Data bytes         : %d\n" "$HEX_DATA_BYTES"
+    ll "Data bytes         : $HEX_DATA_BYTES"
 
     if (( HEX_LOWEST_ADDRESS >= 0 ))
     then
-        printf "Lowest address     : %04XH\n" "$HEX_LOWEST_ADDRESS"
-        printf "Highest address    : %04XH\n" "$HEX_HIGHEST_ADDRESS"
+	printf -v TMPLINE "Lowest address     : %04XH" "$HEX_LOWEST_ADDRESS"
+        ll "$TMPLINE"
+	printf -v TMPLINE "Highest address    : %04XH" "$HEX_HIGHEST_ADDRESS"
+        ll "$TMPLINE"
     fi
-    printf "%s\n" "----------------------------------------------------------"
+    ll "----------------------------------------------------------"
 }
 
 #
@@ -374,23 +413,11 @@ scmterm_banner() {
     echo "Logging session to $LOGFILE"
     echo "    Use 'Ctrl-T' to enter SCMTERM command mode."
     echo "    Use 'Ctrl-X' or 'Ctrl-]' to exit SCMTERM."
-    log_local_line "This is SCMTERM v.1.0."
-    log_local_line "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
-    log_local_line "Logging session to $LOGFILE"
-    log_local_line "    Use 'Ctrl-T' to enter SCMTERM command mode."
-    log_local_line "    Use 'Ctrl-X' or 'Ctrl-]' to exit SCMTERM."
-}
-
-#
-# Print a complete line atomically.
-# Last modified: 202660806/FJ
-#
-term_print() {
-    printf "%s\n" "$1"
-    if (( LOGGING ))
-    then
-        printf "%s\n" "$1" >> "$LOGFILE"
-    fi
+    ll "This is SCMTERM v.1.0."
+    ll "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
+    ll "Logging session to $LOGFILE"
+    ll "    Use 'Ctrl-T' to enter SCMTERM command mode."
+    ll "    Use 'Ctrl-X' or 'Ctrl-]' to exit SCMTERM."
 }
 
 #
@@ -517,11 +544,21 @@ log_receiver() {
 receiver() {
     if (( LOGGING ))
     then
-        tee >(log_receiver) <&4
+        tee -a "$LOGFILE" <&4
     else
         cat <&4
     fi
 }
+
+
+#receiver() {
+#    if (( LOGGING ))
+#    then
+#        tee >(log_receiver) <&4
+#    else
+#        cat <&4
+#    fi
+#}
 
 #
 # Display a linear progress bar for HEX file transfer, from 0% to 100%.
@@ -568,13 +605,13 @@ send_hex() {
 
     if [[ -z "$FILE" ]]
     then
-        term_print "Usage: send <file.hex>"
+        ll "Usage: send <file.hex>"
         return
     fi
 
     if [[ ! -f "$FILE" ]]
     then
-        term_print "Error: Intel HEX file '$FILE' not found!"
+        ll "Error: Intel HEX file '$FILE' not found!"
         return
     fi
 
@@ -584,7 +621,7 @@ send_hex() {
     # Scan the file prior to submission to SCM/Z80.
     #
     analyse_hex "$FILE"
-    printf "\nUploading Intel HEX file $FILE to device ...\n\n"
+    ll "Uploading Intel HEX file $FILE to device ..."
 
     kill -CONT "$RX_PID"
 
@@ -610,10 +647,9 @@ send_hex() {
     #
     sleep 0.20
     kill -STOP "$RX_PID"
-    printf "%s\n" ""
-    printf "%s\n" "----------------------------------------------------------"
-    printf "%s\n" "Transfer of $FILE completed successfully."
-    printf "%s\n" "----------------------------------------------------------"
+    ll "----------------------------------------------------------"
+    ll "Transfer of $FILE completed successfully."
+    ll "----------------------------------------------------------"
     kill -CONT "$RX_PID"
 }
 
@@ -621,13 +657,13 @@ send_hex() {
 # Display the valid commands in SCMTERM command mode.
 #
 display_valid_commands() {
-    printf "%s\n" "----------------------------------------------------------"
-    printf "%s\n" "Valid commands within command mode:"
-    printf "%s\n" "    send <file.hex>   Transfer Intel HEX file to device."
-    printf "%s\n" "    check <file.hex>  Check contents of Intel HEX file."
-    printf "%s\n" "    info              Display communication settings."
-    printf "%s\n" "    quit              Exit command mode and return to SCM."
-    printf "%s\n" "----------------------------------------------------------"
+    ll "----------------------------------------------------------"
+    ll "Valid commands within command mode:"
+    ll "    send <file.hex>   Transfer Intel HEX file to device."
+    ll "    check <file.hex>  Check contents of Intel HEX file."
+    ll "    info              Display communication settings."
+    ll "    quit              Exit command mode and return to SCM."
+    ll "----------------------------------------------------------"
 }
 
 #
@@ -658,26 +694,35 @@ scmterm_info() {
 command_mode() {
     local CMD
     local ARG
-
+    LOGMODE="$CMDMODE"
+    
     #
     # Make sure that we log the entering of command mode (if we are logging).
     #
-    log_local_line "----------------------------------------"
-    log_local_line "Entering SCMTERM terminal command mode"
-    log_local_line "----------------------------------------"
+    ll "----------------------------------------"
+    ll "Entering SCMTERM terminal command mode"
+    ll "----------------------------------------"
 
     #
     # Stop the "raw" keyboard mode.
     #
     stty echo icanon
-    printf "%s\n" "----------------------------------------------------------"
-    printf "%s\n" "Entering SCMTERM terminal command mode"
     display_valid_commands
     while true
     do
         printf "scmterm> "
         read -r CMD ARG
-	log_local_line "scmterm> $CMD $ARG"
+
+        if (( LOGGING ))
+        then
+            printf "## scmterm> %s" "$CMD" >> "$LOGFILE"
+            if [[ -n "$ARG" ]]
+            then
+                printf " %s" "$ARG" >> "$LOGFILE"
+            fi
+            printf "\n" >> "$LOGFILE"
+        fi
+	
         case "$CMD" in
             send)
                 send_hex "$ARG"
@@ -689,18 +734,15 @@ command_mode() {
                 scmterm_info
 		;;
             quit)
-                log_local_line "----------------------------------------"
-                log_local_line "Leaving command mode of the SCMTERM terminal"
-                log_local_line "----------------------------------------"
-                echo "----------------------------------------"
-                echo "Leaving command mode of the SCMTERM terminal"
-                echo "----------------------------------------"
+                ll "----------------------------------------"
+                ll "Leaving command mode of the SCMTERM terminal"
+                ll "----------------------------------------"
                 break
 		;;
             "")
                 ;;
             *)
-                echo "Unknown command: $CMD"
+                ll "Unknown command: $CMD"
 		display_valid_commands
 		;;
         esac
