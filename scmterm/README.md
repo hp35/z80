@@ -116,6 +116,8 @@ Options:
                          was invoked; if found to exist logging will be
                          done to this directory regardless of a missing
                          -l option.
+         -t <file.hex>   Automatically enter command mode, send the
+                         specified Intel HEX file, and exit SCMTERM.
          -h              Display this help message
 
 Default serial configuration:
@@ -287,6 +289,30 @@ Leaving SCMTERM.
 
 me@mycomputer:life$ 
 ```
+
+## Note on the automatic transmission mode (the `-t` command line option)
+Whenever launched with the command line option `-t <file.hex>', `SCMTERM`
+automatically enters its command mode, sends an Intel HEX file, and exits
+clean to the calling terminal. In this case, we actually refrain from entering
+the command mode of `SCMTERM`, as we otherwise would have done when running
+the SCMTERM program interactively.
+
+The automatic transmission sequence for `SCMTERM` is as follows:
+```
+        Linux
+          │
+          ├── start SCMTERM
+          ├── configure UART
+          ├── start receiver
+          ├── enter SCMTERM command mode
+          ├── send <file.hex>
+          ├── wait for send_hex() to finish
+          ├── cleanup
+          └── return to Linux shell
+```
+It is here important to notice that no read operation whatsoever is polled
+from the keyboard in -t mode, so there is no possibility of the script
+hanging waiting for quit.
 
 ## Installation
 Installation in a Linux/OSX/Unix machine is simple. In order to install the
