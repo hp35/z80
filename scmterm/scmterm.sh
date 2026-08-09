@@ -709,36 +709,26 @@ detect_scm_prompt() {
 # Last modified: 202660809/FJ [Adding SCM prompt detection.]
 #
 receiver() {
-    local CH
+    #
+    # Before starting the receiver in automatic run mode, create a
+    # temporary file.
+    #
+    if [[ -n "$AUTO_RUN" ]]
+    then
+        RUN_DONE_FILE=$(mktemp)
+        rm -f "$RUN_DONE_FILE"
+    fi
 
-    while IFS= read -r -d '' -n1 CH <&3
-    do
-        printf '%s' "$CH"
-        log_write "$CH"
-    done
+    if [[ -n "$RUN_DONE_FILE" ]]
+    then
+        tee >(detect_scm_prompt) <&4
+    elif (( LOGGING ))
+    then
+        tee -a "$LOGFILE" <&4
+    else
+        cat <&4
+    fi
 }
-
-#receiver() {
-#    #
-#    # Before starting the receiver in automatic run mode, create a
-#    # temporary file.
-#    #
-#    if [[ -n "$AUTO_RUN" ]]
-#    then
-#        RUN_DONE_FILE=$(mktemp)
-#        rm -f "$RUN_DONE_FILE"
-#    fi
-#
-#    if [[ -n "$RUN_DONE_FILE" ]]
-#    then
-#        tee >(detect_scm_prompt) <&4
-#    elif (( LOGGING ))
-#    then
-#        tee -a "$LOGFILE" <&4
-#    else
-#        cat <&4
-#    fi
-#}
 
 #
 # Display a linear progress bar for HEX file transfer, from 0% to 100%.
