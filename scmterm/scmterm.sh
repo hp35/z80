@@ -223,6 +223,19 @@ ll() {
 }
 
 #
+# Display and log a single character (or string) to the log file. Neither
+# any suffix or linefeed is added, in contrary to the ll() routine.
+#
+lc() {
+    local CHARS="$1"
+    printf '%s' "$CHARS"
+    if (( LOGGING ))
+    then
+        printf '%s\n' "$CHARS" >> "$LOGFILE"
+    fi
+}
+
+#
 # Analyse an Intel HEX file for inherent information before upload to SCM/Z80.
 # Last modified: 202660806/FJ
 #
@@ -719,6 +732,9 @@ receiver() {
 
 #
 # Display a linear progress bar for HEX file transfer, from 0% to 100%.
+# As this progress bar is displayed character-by-character, we log the
+# result by calling the lc() routine (for character-wise logging) rather
+# than the otherwise used ll() routine (for line-wise logging).
 #
 progress_bar() {
     local CURRENT=$1
@@ -729,20 +745,20 @@ progress_bar() {
     (( TOTAL == 0 )) && TOTAL=1
     FILLED=$(( CURRENT * WIDTH / TOTAL ))
     PERCENT=$(( CURRENT * 100 / TOTAL ))
-    printf "\r["
+    printf '\r['
     for ((i=0; i<FILLED; i++))
     do
-        printf "="
+        printf '='
     done
-    printf ">"
+    printf '>'
     for ((i=FILLED+1; i<WIDTH; i++))
     do
-        printf " "
+        printf ' '
     done
     printf "] %3d%%" "$PERCENT"
     if (( CURRENT == TOTAL ))
     then
-        printf "\n"
+        printf '\n'
     fi
 }
 
