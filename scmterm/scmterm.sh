@@ -136,12 +136,14 @@ HEX_STARTLIN_RECORDS=0
 HEX_DATA_BYTES=0
 HEX_LOWEST_ADDRESS=-1
 HEX_HIGHEST_ADDRESS=0
+HEX_START_ADDRESS=-1
 
 #
 # Flag for the special case when SCMTERM just is to automatically transfer
 # an Intel HEX file in command mode and immediately exit clean.
 #
 AUTO_TRANSFER=""
+RUN_TIMEOUT=30
 
 #
 # Display and log a single line of text, with leading characters depending
@@ -241,15 +243,44 @@ analyse_hex() {
                 ;;
             3)
                 ((HEX_STARTSEG_RECORDS++))
+
+                #
+                # Start Segment Address record.
+                #
+                # For the 8080/Z80 use of Intel HEX, this is not normally
+                # what we use, but retain it if present.
+                #
+                CS=$((16#${LINE:9:4}))
+                IP=$((16#${LINE:13:4}))
+                HEX_START_ADDRESS=$((CS * 16 + IP))
                 ;;
             4)
                 ((HEX_EXTLIN_RECORDS++))
                 ;;
             5)
                 ((HEX_STARTLIN_RECORDS++))
+
+                #
+                # Start Linear Address record.
+                #
+                HEX_START_ADDRESS=$((16#${LINE:9:8}))
                 ;;
         esac
     done < "$FILE"
+
+    #
+    # If the HEX file is found not to contain the statement of an explicit
+    # execution address, then use the lowest available data address as the
+    # default for our Z80 workflow.
+    #
+    if (( HEX_START_ADDRESS < 0 ))
+    then
+        HEX_START_ADDRESS=$HEX_LOWEST_ADDRESS
+    fi
+
+    #
+    # Summarize our findings from the Intel HEX file.
+    #
     ll "----------------------------------------------------------"
     ll "Intel HEX file analysis"
     ll "----------------------------------------------------------"
@@ -275,6 +306,8 @@ analyse_hex() {
 	printf -v TMPLINE "Lowest address     : %04XH" "$HEX_LOWEST_ADDRESS"
         ll "$TMPLINE"
 	printf -v TMPLINE "Highest address    : %04XH" "$HEX_HIGHEST_ADDRESS"
+        ll "$TMPLINE"
+	printf -v TMPLINE "Execution address  : %04XH" "$HEX_START_ADDRESS"
         ll "$TMPLINE"
     fi
     ll "----------------------------------------------------------"
@@ -313,7 +346,15 @@ Options:
                     -l option.
     -t <file.hex>   Automatically enter command mode, send the
                     specified Intel HEX file, and exit SCMTERM.
-    -h              Display this help message
+    -r <file.hex>   Automatically transfer and execute the Intel
+                    HEX file over to the device, then monitor the
+                    returned output and wait for the SCM prompt
+                    before exiting. This option is highly useful
+                    for a smooth development flow in which we
+                    automatically can transfer and test the finished
+                    machine code in Intel HEX format.
+                    Default execution timeout is 30 seconds.
+    -h              Display this help message and exit.
 
 Default serial configuration:
     115200 baud
@@ -849,7 +890,7 @@ main_loop() {
 #
 # Parse any present command-line options.
 #
-while getopts ":d:b:p:s:l:t:fh" opt; do
+while getopts ":d:b:p:s:l:t:r:fh" opt; do
     case "$opt" in
         d)
             DEVICE="$OPTARG"
@@ -867,6 +908,9 @@ while getopts ":d:b:p:s:l:t:fh" opt; do
             LOGDIR="$OPTARG"
 	    ;;
         t)
+            AUTO_TRANSFER="$OPTARG"
+            ;;
+        r)
             AUTO_TRANSFER="$OPTARG"
             ;;
         f)

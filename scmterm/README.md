@@ -118,7 +118,15 @@ Options:
                          -l option.
          -t <file.hex>   Automatically enter command mode, send the
                          specified Intel HEX file, and exit SCMTERM.
-         -h              Display this help message
+         -r <file.hex>   Automatically transfer and execute the Intel
+                         HEX file over to the device, then monitor the
+                         returned output and wait for the SCM prompt
+                         before exiting. This option is highly useful
+                         for a smooth development flow in which we
+                         automatically can transfer and test the finished
+                         machine code in Intel HEX format.
+                         Default execution timeout is 30 seconds.
+         -h              Display this help message and exit.
 
 Default serial configuration:
          115200 baud
