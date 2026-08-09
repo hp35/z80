@@ -695,15 +695,6 @@ detect_scm_prompt() {
 #
 # Last modified: 202660809/FJ [Adding SCM prompt detection.]
 #
-#receiver() {
-#    if (( LOGGING ))
-#    then
-#        tee -a "$LOGFILE" <&4
-#    else
-#        cat <&4
-#    fi
-#}
-
 receiver() {
     #
     # Before starting the receiver in automatic run mode, create a
@@ -1062,7 +1053,6 @@ automatic_run() {
     # Analyse the HEX file first.
     #
     analyse_hex "$FILE"
-
     if (( HEX_START_ADDRESS < 0 ))
     then
         echo "Cannot determine execution address."
@@ -1071,13 +1061,12 @@ automatic_run() {
 
     ADDRESS=$HEX_START_ADDRESS
     START_HEX=$(printf "%04X" "$ADDRESS")
-
-    echo
-    echo "Automatic run mode"
-    echo "------------------"
-    echo "HEX file          : $FILE"
-    printf "Execution address : %sH\n" "$START_HEX"
-    echo
+    ll "----------------------------------------------------------"
+    ll "Automatic run mode for Intel HEX file as source"
+    ll "----------------------------------------------------------"
+    ll "File               : $FILE"
+    printf -v TMPLINE "Execution address : %sH\n" "$START_HEX"
+    ll "$TMPLINE"
 
     #
     # Transfer the program.
@@ -1093,8 +1082,10 @@ automatic_run() {
     # Send the SCM G command.
     #
     echo
-    printf "Starting program at %sH...\n" "$START_HEX"
-
+    printf -v TMPLINE "Starting program at %sH...\n" "$START_HEX"
+    ll "$TMPLINE"
+    printf -v TMPLINE "G%s\r" "$START_HEX"
+    ll "$TMPLINE"
     printf "G%s\r" "$START_HEX" >&3
 
     if (( LOGGING ))
