@@ -98,16 +98,21 @@ Usage:
 Options:
          -d device       Serial device
                          Default: /dev/ttyUSB0
+			 
          -b baud         Baud rate
                          Default: 115200
+			 
          -p parity       Parity
                          N = none (default)
                          E = even
                          O = odd
+			 
          -s stopbits     Stop bits
                          1 (default)
                          2
+			 
          -f              Enable RTS/CTS hardware flow control
+	 
          -l <logdir>     Record the entire SCMTERM session to log file
                          located in the <logdir> directory.
                          If no -l command-line option is present, then
@@ -116,8 +121,10 @@ Options:
                          was invoked; if found to exist logging will be
                          done to this directory regardless of a missing
                          -l option.
+			 
          -t <file.hex>   Automatically enter command mode, send the
                          specified Intel HEX file, and exit SCMTERM.
+			 
          -r <file.hex>   Automatically transfer and execute the Intel
                          HEX file over to the device, then monitor the
                          returned output and wait for the SCM prompt
@@ -125,7 +132,39 @@ Options:
                          for a smooth development flow in which we
                          automatically can transfer and test the finished
                          machine code in Intel HEX format.
+			 
                          Default execution timeout is 30 seconds.
+                         Important: there is no universal way for SCMTERM
+                         to identify that an arbitrary Z80 program has
+                         finished. If the program running at the Z80 never
+                         returns to SCM, there is nothing in the serial
+                         stream that intrinsically says "finished".
+                         For the present purpose, returning to SCM and
+                         producing its '*' prompt is here considered as
+                         a reasonable convention.
+
+                         In the automatic execution mode, the order of
+                         things is as follows:
+                           1. If the HEX contains an Intel HEX start
+                              address record, then use that.
+                           2. Otherwise, use the lowest data address
+                              as the execution address.
+                           3. Send the HEX file over to the device over
+                              the serial interface (UART), just as we
+                              would in command mode (Ctrl-T) when running
+                              SCMTERM interactively.
+                           4. Send G<address>\r to SCM to let SCM initiate
+                              the execution of the program, starting at
+                              the identified execution <address>.
+                           5. Continue displaying the output returned by
+                              SCM over the UART.
+                           6. Regard the return of the SCM '*' prompt as
+                              "program finished".
+                           7. We meanwhile use a timeout (default 30 s)
+                              so that an accidentally infinite program
+                              cannot leave SCMTERM hanging forever.
+                           8. Exit clean from SCMTERM.
+
          -h              Display this help message and exit.
 
 Default serial configuration:
