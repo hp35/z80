@@ -188,9 +188,10 @@ AUTO_TRANSFER=""
 #
 # Flag for the special case when SCMTERM just is to automatically transfer
 # and run an Intel HEX file in command mode and immediately exit clean.
+# Here, RUN_TIMEOUT is the timeout measured in seconds.
 #
 AUTO_RUN=""
-RUN_TIMEOUT_SECONDS=30
+RUN_TIMEOUT=30
 
 #
 # Display and log a single line of text, with leading characters depending
