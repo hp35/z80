@@ -126,8 +126,8 @@ Options:
                          specified Intel HEX file, and exit SCMTERM.
 			 
          -r <file.hex>   Automatically transfer and execute the Intel
-                         HEX file over to the device, then monitor the
-                         returned output and wait for the SCM prompt
+                         HEX file at the device, then monitor the output
+                         returned from SCM and wait for the SCM prompt
                          before exiting. This option is highly useful
                          for a smooth development flow in which we
                          automatically can transfer and test the finished

@@ -44,8 +44,8 @@
 #         -t <file.hex>   Automatically enter command mode, send the
 #                         specified Intel HEX file, and exit SCMTERM.
 #         -r <file.hex>   Automatically transfer and execute the Intel
-#                         HEX file over to the device, then monitor the
-#                         returned output and wait for the SCM prompt
+#                         HEX file at the device, then monitor the output
+#                         returned from SCM and wait for the SCM prompt
 #                         before exiting. This option is highly useful
 #                         for a smooth development flow in which we
 #                         automatically can transfer and test the finished
@@ -184,7 +184,13 @@ HEX_START_ADDRESS=-1
 # an Intel HEX file in command mode and immediately exit clean.
 #
 AUTO_TRANSFER=""
-RUN_TIMEOUT=30
+
+#
+# Flag for the special case when SCMTERM just is to automatically transfer
+# and run an Intel HEX file in command mode and immediately exit clean.
+#
+AUTO_RUN=""
+RUN_TIMEOUT_SECONDS=30
 
 #
 # Display and log a single line of text, with leading characters depending
@@ -388,8 +394,8 @@ Options:
     -t <file.hex>   Automatically enter command mode, send the
                     specified Intel HEX file, and exit SCMTERM.
     -r <file.hex>   Automatically transfer and execute the Intel
-                    HEX file over to the device, then monitor the
-                    returned output and wait for the SCM prompt
+                    HEX file at the device, then monitor the output
+                    returned from SCM and wait for the SCM prompt
                     before exiting. This option is highly useful
                     for a smooth development flow in which we
                     automatically can transfer and test the finished
@@ -607,6 +613,14 @@ cleanup() {
     fi
 
     #
+    # At cleanup, remove the temporary file for signal completion.
+    #
+    if [[ -n "$RUN_DONE_FILE" ]]
+    then
+        rm -f "$RUN_DONE_FILE"
+    fi
+
+    #
     # Close UART.
     #
     exec 3>&-
@@ -627,6 +641,42 @@ log_receiver() {
 }
 
 #
+# Monitor the SCM output during automatic run mode.
+#
+detect_scm_prompt() {
+    local DATA=""
+
+    while IFS= read -r -n1 CHAR
+    do
+        DATA+="$CHAR"
+
+        #
+        # Keep only the most recent few characters.
+        #
+        if (( ${#DATA} > 16 ))
+        then
+            DATA="${DATA: -16}"
+        fi
+
+        #
+        # The SCM's command prompt is always '*'.
+        #
+        if [[ "$CHAR" == "*" ]]
+        then
+
+            #
+            # We regard a '*' following a line ending as the SCM prompt.
+            #
+            if [[ "$DATA" == *$'\n'*"*" ]]
+            then
+                touch "$RUN_DONE_FILE"
+            fi
+
+        fi
+    done
+}
+
+#
 # Open the serial (UART) receiver of text from the SCM interface. In the
 # present scheme, the UART stream, without any parsing, buffering or
 # interference with the displayed output, becomes
@@ -642,26 +692,38 @@ log_receiver() {
 #                               ▼
 #                           logfile
 #
-# Last modified: 202660807/FJ [Radically simplifying the receiver.]
+# Last modified: 202660809/FJ [Adding SCM prompt detection.]
 #
+#receiver() {
+#    if (( LOGGING ))
+#    then
+#        tee -a "$LOGFILE" <&4
+#    else
+#        cat <&4
+#    fi
+#}
+
 receiver() {
-    if (( LOGGING ))
+    #
+    # Before starting the receiver in automatic run mode, create a
+    # temporary file.
+    #
+    if [[ -n "$AUTO_RUN" ]]
+    then
+        RUN_DONE_FILE=$(mktemp)
+        rm -f "$RUN_DONE_FILE"
+    fi
+
+    if [[ -n "$RUN_DONE_FILE" ]]
+    then
+        tee >(detect_scm_prompt) <&4
+    elif (( LOGGING ))
     then
         tee -a "$LOGFILE" <&4
     else
         cat <&4
     fi
 }
-
-
-#receiver() {
-#    if (( LOGGING ))
-#    then
-#        tee >(log_receiver) <&4
-#    else
-#        cat <&4
-#    fi
-#}
 
 #
 # Display a linear progress bar for HEX file transfer, from 0% to 100%.
@@ -868,13 +930,20 @@ command_mode() {
 #        Linux
 #          │
 #          ├── start SCMTERM
+#          │
 #          ├── configure UART
+#          │
 #          ├── start receiver
+#          │
 #          ├── enter SCMTERM command mode
+#          │
 #          ├── send <file.hex>
+#          │
 #          ├── wait for send_hex() to finish
+#          │
 #          ├── cleanup
-#          └── return to Linux shell
+#          │
+#          └── exit SCMTERM and return to Linux shell
 #
 # It is here important to notice that no read operation whatsoever is polled
 # from the keyboard in -t mode, so there is no possibility of the script
@@ -917,6 +986,157 @@ automatic_transfer()
     # Return directly to Linux.
     #
     ll "Automatic transfer completed. Now leaving SCMTERM."
+}
+
+#
+# Automatically transfer and execute an Intel HEX file at the device, then
+# monitor the output returned from SCM and wait for the SCM prompt before
+# exiting.
+#
+# Important: there is no universal way for SCMTERM to identify that an
+# arbitrary Z80 program has finished at the device. If the program running at
+# the Z80 never returns to SCM, there is nothing in the serial stream that
+# intrinsically says "finished". For the present purpose, returning to SCM
+# and producing its '*' prompt is here considered as a reasonable convention.
+#
+# In the automatic execution mode, the order of things is as follows:
+#     1. If the HEX contains an Intel HEX start
+#        address record, then use that.
+#     2. Otherwise, use the lowest data address as the execution address.
+#     3. Send the HEX file over to the device over the serial interface
+#        (UART), just as we would in command mode (Ctrl-T) when running
+#        SCMTERM interactively.
+#     4. Send G<address>\r to SCM to let SCM initiate the execution of the
+#        program, starting at the identified execution <address>.
+#     5. Continue displaying the output returned by SCM over the UART.
+#     6. Regard the return of the SCM '*' prompt as "program finished".
+#     7. We meanwhile use a timeout (default 30 s) so that an accidentally
+#        infinite program cannot leave SCMTERM hanging forever.
+#     8. Exit clean from SCMTERM.
+#
+# The automatic execution sequence is as follows:
+#
+#        Linux
+#          │
+#          ├── open /dev/ttyUSB0
+#          │
+#          ├── analyse file.hex
+#          │       │
+#          │       └── execution address = 9000H
+#          │
+#          ├── enter automatic transfer mode
+#          │
+#          ├── send file.hex
+#          │
+#          ├── wait for transfer to finish
+#          │
+#          ├── send G9000<CR>
+#          │
+#          ├── display program output
+#          │
+#          ├── detect SCM '*'
+#          │
+#          ├── "Program returned to SCM."
+#          │
+#          └── exit SCMTERM and return to Linux shell
+#
+automatic_run() {
+    local FILE="$AUTO_RUN"
+    local ADDRESS
+    local START_HEX
+
+    if [[ -z "$FILE" ]]
+    then
+        echo "No Intel HEX file specified for automatic run."
+        return 1
+    fi
+
+    if [[ ! -f "$FILE" ]]
+    then
+        echo "Intel HEX file not found: $FILE"
+        return 1
+    fi
+
+    #
+    # Analyse the HEX file first.
+    #
+    analyse_hex "$FILE"
+
+    if (( HEX_START_ADDRESS < 0 ))
+    then
+        echo "Cannot determine execution address."
+        return 1
+    fi
+
+    ADDRESS=$HEX_START_ADDRESS
+    START_HEX=$(printf "%04X" "$ADDRESS")
+
+    echo
+    echo "Automatic run mode"
+    echo "------------------"
+    echo "HEX file          : $FILE"
+    printf "Execution address : %sH\n" "$START_HEX"
+    echo
+
+    #
+    # Transfer the program.
+    #
+    send_hex "$FILE"
+
+    #
+    # Give SCM a short time to process the final HEX record.
+    #
+    sleep 0.20
+
+    #
+    # Send the SCM G command.
+    #
+    echo
+    printf "Starting program at %sH...\n" "$START_HEX"
+
+    printf "G%s\r" "$START_HEX" >&3
+
+    if (( LOGGING ))
+    then
+        printf ">> G%s <ENTER>\n" "$START_HEX" >> "$LOGFILE"
+    fi
+
+    #
+    # Now wait for the SCM prompt.
+    #
+    wait_for_scm_prompt
+}
+
+#
+# Wait for the SCM prompt '*' indicating that the executed program has
+# returned to SCM.
+#
+wait_for_scm_prompt() {
+    local ELAPSED=0
+
+    echo "Waiting for program to return to SCM..."
+
+    while (( ELAPSED < RUN_TIMEOUT ))
+    do
+
+        if [[ -f "$RUN_DONE_FILE" ]]
+        then
+            echo
+            echo "Program returned to SCM."
+            echo "SCM prompt detected."
+            return 0
+        fi
+
+        sleep 0.1
+        ELAPSED=$((ELAPSED + 1))
+
+    done
+
+    echo
+    echo "Execution timeout."
+    echo "The program did not return to SCM within ${RUN_TIMEOUT} seconds."
+
+    return 1
 }
 
 #
@@ -981,10 +1201,16 @@ while getopts ":d:b:p:s:l:t:r:fh" opt; do
             LOGDIR="$OPTARG"
 	    ;;
         t)
+	    #
+	    # Automatic transfer mode (Intel HEX file)
+	    #
             AUTO_TRANSFER="$OPTARG"
             ;;
         r)
-            AUTO_TRANSFER="$OPTARG"
+	    #
+	    # Automatic execution mode (Intel HEX file)
+	    #
+            AUTO_RUN="$OPTARG"
             ;;
         f)
             FLOWCONTROL=1
@@ -1016,7 +1242,17 @@ trap cleanup EXIT
 open_uart
 receiver &
 RX_PID=$!
-if [[ -n "$AUTO_TRANSFER" ]]
+
+#
+# Launch the exectution in one of three distinct modes: Automatic execution,
+# automatic transfer, and regular interactive mode.
+#
+if [[ -n "$AUTO_RUN" ]]
+then
+    RUN_DONE_FILE=$(mktemp)
+    rm -f "$RUN_DONE_FILE"
+    automatic_run
+elif [[ -n "$AUTO_TRANSFER" ]]
 then
     automatic_transfer
 else
