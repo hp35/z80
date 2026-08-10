@@ -140,6 +140,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+REVISION="1.1"
 
 #
 # Default initialization of SCMTERM communication parameters for the port.
@@ -536,7 +537,7 @@ log_local() {
 # Startup banner of the SCMTERM script.
 #
 scmterm_banner() {
-    ll "This is SCMTERM v.1.0."
+    ll "This is SCMTERM v.$REVISION."
     ll "Copyright (C) 2026 Fredrik Jonsson under GPL 3.0"
     ll "Logging session to $LOGFILE"
     ll "    Use 'Ctrl-T' to enter SCMTERM command mode."
