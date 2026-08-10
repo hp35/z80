@@ -599,6 +599,50 @@ save_terminal_state () {
 # Open UART for bidirectional communication and enter "raw" keyboard mode.
 # The '-opost' option would disable Linux output processing explicitly,
 # avoiding the kernel doing additional translations behind the curtains.
+#
+#                 RC2014
+#                   ↕
+#             /dev/ttyUSB0
+#               ↙       ↘
+#           FD 3         FD 4
+#            TX           RX
+#            │             │
+#            ▼             ▼
+#         SCMTERM       receiver()
+#                          │
+#                   ┌──────┴──────┐
+#                   ▼             ▼
+#                terminal        ll()
+#                                 │
+#                                 ▼
+#                              logfile
+#
+# The block 'exec 3> "$DEVICE"' essentially means "open the device named by
+# $DEVICE for writing, and attach the resulting file descriptor to number 3".
+# In this context, the "descriptor 3" is used due to the reason that Unix
+# processes (as we designed this bash script for running under Linux or any
+# Unix-compatible system) normally have three standard file descriptors:
+#
+#        FD      Name      Normally connected to
+#        0       stdin     keyboard
+#        1       stdout    terminal
+#        2       stderr    terminal
+#
+# The file descriptors 3 and above are available for our own purposes. Hence
+# the SCMTERM script creates
+#
+#        FD 3 ──> /dev/ttyUSB0  (write)
+#        FD 4 ──> /dev/ttyUSB0  (read)
+#
+# through the initializationof the file descriptors ("I/O channels") as
+#
+#        exec 3> "$DEVICE"
+#        exec 4< "$DEVICE"
+#
+# This is highly useful for the SCMTERM script as we then can transmit commands
+# directly to the RC2014 with strings like 'printf 'G9000\r' >&3', where '>&3'
+# simply means "send the output of this command to file descriptor 3".
+#
 # Last modified: 202660804/FJ
 #
 open_uart() {
@@ -644,13 +688,31 @@ cleanup() {
 
 #
 # Append received UART data to the SCMTERM log. This routine is logging
-# everything received from SCM; however notice that it does not write
-# anything to the terminal.
+# everything received from SCM as complete lines of output; however notice
+# that it does not write anything to the terminal.
 #
 log_receiver() {
-    while IFS= read -r -n1 CHAR
+    local CHAR
+    local LINE=""
+
+    while IFS= read -r -d '' -n1 CHAR
     do
-        printf "%s" "$CHAR" >> "$LOGFILE"
+        case "$CHAR" in
+            $'\r')
+                # SCM uses CR/LF. Ignore the CR; wait for LF.
+                ;;
+
+            $'\n')
+                # Complete SCM line received.
+                LOGMODE="$COMMODE"
+                ll "$LINE"
+                LINE=""
+                ;;
+
+            *)
+                LINE+="$CHAR"
+                ;;
+        esac
     done
 }
 
