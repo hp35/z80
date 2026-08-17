@@ -60,35 +60,39 @@ connection to the SCM firmware straight from a standard terminal in Linux,
 without having to use separate programs like `GTKTerm` or similar.
 
 ## Workflow
-The idea is to use `SCMTERM` in a natural workflow from a Linux station over
-to SCM running on the RC2014 Z80 platform (or any similar platform running SCM)
-as
+The idea is to use `SCMTERM` in a natural workflow from the terminal of a Linux
+workstation over to SCM running on the RC2014 Z80 platform (or any similar
+platform running SCM), as
 ```
-Linux workstation
-        |
-        |  SCMTERM
-        |
-USB-UART (/dev/ttyUSB0)
-        |
-        |
-RC2014 UART
-        |
-        |
-SCM R4 monitor
-        |
-        +--> assemble / inspect memory / run programs
+ Linux workstation
+         |
+         |  SCMTERM
+         |
+     USB-UART       [/dev/ttyACM0, /dev/ttyUSB0, or similar]
+         |
+         |
+   RC2014 UART      [Motorola MC68B50 chip on the RC2014]
+         |
+         |
+  SCM R4 monitor    [Effectively a BIOS]
+         |
+         +--> assemble / inspect memory / run programs
 ```
 The overall design decisions for `SCMTERM` are as follows:
-  * Keeping SCMTERM in Bash rather than immediately rewriting it in, say, C
-    or Python.
+  * Keeping SCMTERM in Bash rather than eventually rewriting it in, say,
+    C or Python.
   * Eliminating the need for running (the otherwise excellent) `GTKTerm`
     in a separate window; everything should be possible to do via a plain
-    terminal under Linux.
-  * Keeping the RC2014 side untouched, that is to say with no changes to SCM
-    whatsoever.
-  * Logging is optional.
-  * Using command mode as a local terminal escape layer.
-  * Avoiding unnecessary dependencies. ("Keep it simple, stupid!")
+    terminal under Linux, even via `ssh` into, say, a Raspberry Pi Zero.
+  * Keeping the RC2014 side completely untouched, with no changes to the
+    `SCM` BIOS whatsoever.
+  * Logging as optional, to ensure that long-term sessions can be properly
+    documented.
+  * Implementation of a "command mode" of `SCMTERM` (using Ctrl-T) as a
+    local terminal escape layer for checking and sending Intel HEX files
+    over to the RC2014.
+  * Avoiding unnecessary dependencies other than the `bash` interpreter.
+    ("Keep it simple, stupid!")
 
 ## Usage
 ```
