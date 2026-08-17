@@ -1356,12 +1356,25 @@ RX_PID=$!
 #
 if [[ -n "$AUTO_RUN" ]]
 then
-    RUN_DONE_FILE=$(mktemp)
-    rm -f "$RUN_DONE_FILE"
+
+    #
+    # Automatic transfer and execution mode.
+    #
     automatic_run
+
 elif [[ -n "$AUTO_TRANSFER" ]]
 then
+
+    #
+    # Automatic transfer mode. (No execution.)
+    #
     automatic_transfer
+
 else
+
+    #
+    # Interactive mode. Enter command mode by Ctrl-T when in the loop.
+    #
     main_loop
+
 fi
