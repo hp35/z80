@@ -19,7 +19,8 @@ configuration for testing purposes, in which UART0 is communicating with
 UART1.](waveshare-a.jpg)</br>
 <b>Figure 1.</b><i>Waveshare USB to UART/I2C/SPI/JTAG</i> interface connected
 with USB, in a loop configuration for testing purposes, in which UART0 is
-communicating with UART1.
+communicating with UART1. For details on this configuration, see section
+<em>4. Checking loopback with CTS/RTS flow control</em>.
 
 ## 1. Default settings
 The following assumes that you are using a Linux-based system together with the
